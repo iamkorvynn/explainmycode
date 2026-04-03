@@ -1,7 +1,8 @@
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -17,7 +18,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
     remember_refresh_token_expire_days: int = 30
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"])
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"]
+    )
     frontend_base_url: str = "http://127.0.0.1:5173"
     backend_base_url: str = "http://127.0.0.1:8000"
     llm_mode: str = "mock"
@@ -29,6 +32,10 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     github_client_id: str = ""
     github_client_secret: str = ""
+    onecompiler_base_url: str = "https://api.onecompiler.com/v1/run"
+    onecompiler_api_key: str = ""
+    compiler_io_base_url: str = "https://api.onlinecompiler.io/api/run-code-sync/"
+    compiler_io_api_key: str = ""
     judge0_base_url: str = ""
     judge0_api_key: str = ""
     smtp_host: str = ""

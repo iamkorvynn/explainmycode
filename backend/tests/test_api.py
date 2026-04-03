@@ -133,3 +133,183 @@ def test_workspace_mentor_and_analysis_flow(client):
     )
     assert dashboard.status_code == 200
     assert dashboard.json()["metrics"]["functions"] == 1
+
+
+def test_execution_prefers_onecompiler_when_configured(client, monkeypatch):
+    payload = signup_and_login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+
+    monkeypatch.setattr(settings, "onecompiler_api_key", "onecompiler-key")
+
+    def fake_onecompiler_run(self, source_code: str, language: str, stdin: str | None = None):
+        assert language == "python"
+        return {
+            "stdout": "hello from onecompiler\n",
+            "stderr": None,
+            "compile_output": None,
+            "execution_time_ms": 41,
+            "memory_kb": 12345,
+            "exit_status": "success",
+            "provider_job_id": None,
+            "provider": "onecompiler",
+        }
+
+    def fail_compiler_io(*args, **kwargs):
+        raise AssertionError("Compiler.io should not be called when OneCompiler succeeds.")
+
+    def fail_judge0(*args, **kwargs):
+        raise AssertionError("Judge0 should not be called when OneCompiler succeeds.")
+
+    monkeypatch.setattr("app.integrations.onecompiler.OneCompilerClient.run_code", fake_onecompiler_run)
+    monkeypatch.setattr("app.integrations.compiler_io.CompilerIOClient.run_code", fail_compiler_io)
+    monkeypatch.setattr("app.integrations.judge0.Judge0Client.run_code", fail_judge0)
+
+    response = client.post(
+        "/api/v1/execution/run",
+        json={"source_code": 'print("hello")', "language": "python"},
+        headers=headers,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provider"] == "onecompiler"
+    assert payload["stdout"] == "hello from onecompiler\n"
+    assert payload["exit_status"] == "success"
+
+
+def test_live_ai_routes_use_provider_payloads(client, monkeypatch):
+    payload = signup_and_login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+    code = "def binary_search(arr, target):\n    mid = len(arr) // 2\n    return arr[mid]\n"
+
+    def fake_generate_json(_, *, preferred: str, system_prompt: str, user_prompt: str):
+        if "Task: live_comments" in user_prompt:
+            return {"comments": [{"line": 2, "comment": "Computes the midpoint before reading the array.", "type": "important"}]}, "groq"
+        if "Task: summary" in user_prompt:
+            return {"summary": "Live summary from the provider."}, "claude"
+        if "Task: explanation" in user_prompt:
+            return {
+                "sections": [{"title": "Core Logic", "start_line": 1, "end_line": 3, "summary": "Defines and uses the midpoint."}],
+                "full_explanation": "Live explanation from the provider.",
+            }, "claude"
+        if "Task: line_explanation" in user_prompt:
+            return {
+                "line_number": 2,
+                "explanation": "This line finds the middle position in the list.",
+                "related_lines": [1, 3],
+            }, "groq"
+        if "Task: bugs" in user_prompt:
+            return {
+                "bugs": [
+                    {
+                        "title": "Missing bounds check",
+                        "line": 3,
+                        "severity": "medium",
+                        "category": "logic",
+                        "description": "The code assumes the list is not empty before reading arr[mid].",
+                        "fix_suggestion": "Return early when the input list is empty.",
+                    }
+                ]
+            }, "claude"
+        if "Task: assumptions" in user_prompt:
+            return {
+                "assumptions": [
+                    {
+                        "title": "Array is not empty",
+                        "category": "input",
+                        "description": "The code assumes there is at least one element before reading the midpoint.",
+                    }
+                ]
+            }, "claude"
+        if "Task: on_track" in user_prompt:
+            return {
+                "type": "warning",
+                "message": "One risky edge case still needs attention.",
+                "details": "Guard the empty-array path before shipping.",
+            }, "groq"
+        if "Task: chat" in user_prompt:
+            return {
+                "answer": "The code can fail on an empty list because arr[mid] becomes unsafe.",
+                "citations": [{"label": "Line 3", "line": 3, "reason": "This line reads the midpoint without an empty-check."}],
+                "follow_ups": ["Ask how to guard empty input"],
+            }, "claude"
+        if "Task: dashboard" in user_prompt:
+            return {
+                "summary": {
+                    "primary_language": "Python",
+                    "code_style": "Compact Python with a missing guard clause.",
+                    "documentation_status": "Needs Improvement",
+                },
+                "detected_algorithms": [
+                    {
+                        "name": "Binary Search",
+                        "complexity": "O(log n)",
+                        "type": "Divide and Conquer",
+                        "confidence": 0.97,
+                    }
+                ],
+                "complexity": {"time": "O(log n)", "space": "O(1)"},
+                "suggestions": [
+                    {
+                        "type": "best-practice",
+                        "priority": "high",
+                        "title": "Add an empty-input guard",
+                        "description": "Prevent midpoint access when the array has no elements.",
+                    }
+                ],
+            }, "claude"
+        raise AssertionError(f"Unexpected prompt: {user_prompt[:80]}")
+
+    monkeypatch.setattr("app.services.live_llm.LiveLLMClient.generate_json", fake_generate_json)
+
+    live_comments = client.post("/api/v1/mentor/live-comments", json={"code": code, "language": "python"}, headers=headers)
+    assert live_comments.status_code == 200
+    assert live_comments.json()["provider"] == "groq"
+    assert live_comments.json()["comments"][0]["line"] == 2
+
+    summary = client.post("/api/v1/mentor/summary", json={"code": code, "language": "python"}, headers=headers)
+    assert summary.status_code == 200
+    assert summary.json()["provider"] == "claude"
+    assert summary.json()["summary"] == "Live summary from the provider."
+
+    explanation = client.post("/api/v1/mentor/explanation", json={"code": code, "language": "python"}, headers=headers)
+    assert explanation.status_code == 200
+    assert explanation.json()["provider"] == "claude"
+    assert explanation.json()["sections"][0]["title"] == "Core Logic"
+
+    line_explanation = client.post(
+        "/api/v1/mentor/line-explanation",
+        json={"code": code, "language": "python", "line_number": 2},
+        headers=headers,
+    )
+    assert line_explanation.status_code == 200
+    assert line_explanation.json()["provider"] == "groq"
+    assert line_explanation.json()["related_lines"] == [1, 3]
+
+    bugs = client.post("/api/v1/mentor/bugs", json={"code": code, "language": "python"}, headers=headers)
+    assert bugs.status_code == 200
+    assert bugs.json()["provider"] == "claude"
+    assert bugs.json()["bugs"][0]["title"] == "Missing bounds check"
+
+    assumptions = client.post("/api/v1/mentor/assumptions", json={"code": code, "language": "python"}, headers=headers)
+    assert assumptions.status_code == 200
+    assert assumptions.json()["provider"] == "claude"
+    assert assumptions.json()["assumptions"][0]["title"] == "Array is not empty"
+
+    on_track = client.post("/api/v1/mentor/on-track", json={"code": code, "language": "python"}, headers=headers)
+    assert on_track.status_code == 200
+    assert on_track.json()["provider"] == "groq"
+    assert on_track.json()["type"] == "warning"
+
+    chat = client.post(
+        "/api/v1/mentor/chat",
+        json={"code": code, "language": "python", "message": "What can fail here?", "history": []},
+        headers=headers,
+    )
+    assert chat.status_code == 200
+    assert chat.json()["provider"] == "claude"
+    assert chat.json()["citations"][0]["line"] == 3
+
+    dashboard = client.post("/api/v1/analysis/dashboard", json={"code": code, "language": "python"}, headers=headers)
+    assert dashboard.status_code == 200
+    assert dashboard.json()["provider"] == "claude"
+    assert dashboard.json()["suggestions"][0]["title"] == "Add an empty-input guard"

@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 
+from app.integrations.compiler_io import CompilerIOClient
 from app.integrations.judge0 import Judge0Client
+from app.integrations.onecompiler import OneCompilerClient
 from app.models.user import User
 from app.repositories.execution import ExecutionRepository
 
@@ -9,10 +11,16 @@ class CodeExecutionService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = ExecutionRepository(db)
-        self.client = Judge0Client()
+        self.onecompiler = OneCompilerClient()
+        self.compiler_io = CompilerIOClient()
+        self.judge0 = Judge0Client()
 
     def run_code(self, user: User, source_code: str, language: str, stdin: str | None = None, workspace_id: str | None = None):
-        provider_result = self.client.run_code(source_code=source_code, language=language, stdin=stdin)
+        provider_result = self.onecompiler.run_code(source_code=source_code, language=language, stdin=stdin)
+        if not provider_result:
+            provider_result = self.compiler_io.run_code(source_code=source_code, language=language, stdin=stdin)
+        if not provider_result:
+            provider_result = self.judge0.run_code(source_code=source_code, language=language, stdin=stdin)
         execution = self.repo.create(
             user_id=user.id,
             workspace_id=workspace_id,

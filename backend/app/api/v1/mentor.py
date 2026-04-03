@@ -62,4 +62,4 @@ def on_track(payload: CodeRequest, _: User = Depends(get_current_user), db: Sess
 
 @router.post("/chat", response_model=MentorChatResponse)
 def mentor_chat(payload: MentorChatRequest, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> MentorChatResponse:
-    return MentorAnalysisService(db).chat(payload.code, payload.language, payload.message)
+    return MentorAnalysisService(db).chat(payload.code, payload.language, payload.message, payload.history)

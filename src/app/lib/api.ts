@@ -463,7 +463,13 @@ export async function searchWorkspaceFiles(workspaceId: string, query: string) {
   );
 }
 
-export async function runCode(payload: { sourceCode: string; language: string; workspaceId?: string | null; filename?: string | null }) {
+export async function runCode(payload: {
+  sourceCode: string;
+  language: string;
+  stdin?: string | null;
+  workspaceId?: string | null;
+  filename?: string | null;
+}) {
   return apiRequest<{
     execution_id: string;
     stdout?: string | null;
@@ -479,6 +485,7 @@ export async function runCode(payload: { sourceCode: string; language: string; w
     body: {
       source_code: payload.sourceCode,
       language: payload.language,
+      stdin: payload.stdin,
       workspace_id: payload.workspaceId,
       filename: payload.filename,
     },

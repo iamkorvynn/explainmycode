@@ -3,10 +3,12 @@ import { motion } from "motion/react";
 
 interface TerminalProps {
   output: string[];
+  stdin: string;
+  onStdinChange: (value: string) => void;
   onClear: () => void;
 }
 
-export function Terminal({ output, onClear }: TerminalProps) {
+export function Terminal({ output, stdin, onStdinChange, onClear }: TerminalProps) {
   return (
     <div className="h-full bg-[#111827] flex flex-col">
       {/* Header */}
@@ -24,6 +26,18 @@ export function Terminal({ output, onClear }: TerminalProps) {
           <Trash2 className="w-3.5 h-3.5" />
           Clear
         </motion.button>
+      </div>
+
+      <div className="border-b border-[#1f2937] px-4 py-3">
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#9ca3af]">
+          Program Input (stdin)
+        </label>
+        <textarea
+          value={stdin}
+          onChange={(event) => onStdinChange(event.target.value)}
+          placeholder="Optional input for programs that use input(), Scanner, cin, prompt, etc."
+          className="min-h-[68px] w-full resize-none rounded-lg border border-[#374151] bg-[#1f2937] px-3 py-2 font-mono text-xs text-[#e5e7eb] placeholder:text-[#6b7280] focus:border-[#22c55e] focus:outline-none transition-colors"
+        />
       </div>
 
       {/* Output */}

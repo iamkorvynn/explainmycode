@@ -4,9 +4,10 @@ import { motion } from "motion/react";
 interface WelcomeScreenProps {
   onTrySampleCode: () => void;
   onOpenEditor: () => void;
+  isLoading?: boolean;
 }
 
-export function WelcomeScreen({ onTrySampleCode, onOpenEditor }: WelcomeScreenProps) {
+export function WelcomeScreen({ onTrySampleCode, onOpenEditor, isLoading = false }: WelcomeScreenProps) {
   return (
     <div className="h-full bg-[#020617] flex items-center justify-center p-8">
       <motion.div
@@ -38,7 +39,9 @@ export function WelcomeScreen({ onTrySampleCode, onOpenEditor }: WelcomeScreenPr
           transition={{ delay: 0.4 }}
           className="text-lg text-[#9ca3af] mb-8"
         >
-          Create a file or load sample code to start getting explanations, bug checks, and live feedback.
+          {isLoading
+            ? "Preparing your workspace so you can start coding..."
+            : "Create a file or load sample code to start getting explanations, bug checks, and live feedback."}
         </motion.p>
 
         <motion.div
@@ -71,7 +74,8 @@ export function WelcomeScreen({ onTrySampleCode, onOpenEditor }: WelcomeScreenPr
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onTrySampleCode}
-            className="px-6 py-3 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-[#22c55e]/30 transition-colors"
+            disabled={isLoading}
+            className="px-6 py-3 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#14532d] disabled:text-[#86efac] disabled:cursor-not-allowed text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-[#22c55e]/30 transition-colors"
           >
             <FileCode className="w-5 h-5" />
             Try Sample Code
@@ -84,7 +88,8 @@ export function WelcomeScreen({ onTrySampleCode, onOpenEditor }: WelcomeScreenPr
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onOpenEditor}
-            className="px-6 py-3 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-[#3b82f6]/30 transition-colors"
+            disabled={isLoading}
+            className="px-6 py-3 bg-[#3b82f6] hover:bg-[#2563eb] disabled:bg-[#1e3a8a] disabled:text-[#bfdbfe] disabled:cursor-not-allowed text-white rounded-lg font-semibold flex items-center gap-2 shadow-lg shadow-[#3b82f6]/30 transition-colors"
           >
             <Code2 className="w-5 h-5" />
             Open Editor

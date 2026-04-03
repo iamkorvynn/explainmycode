@@ -49,8 +49,14 @@ numbers = [1, 3, 5, 7, 9, 11, 13, 15]
 print(binary_search(numbers, 7))
 `;
 
-type AITab = "Comments" | "Summary" | "Explanation" | "Bugs" | "Assumptions";
+type AITab = "Comments" | "Summary" | "Explanation" | "Bugs" | "Assumptions" | "Chat";
 type ExplanationMode = "section" | "line";
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  followUps?: string[];
+  citations?: Array<Record<string, unknown>>;
+};
 
 export function MainIDE() {
   const rememberedWorkspace = getCurrentWorkspaceState();
@@ -68,10 +74,12 @@ export function MainIDE() {
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(true);
   const [showTerminal, setShowTerminal] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
+  const [stdin, setStdin] = useState("");
   const [mentorResponse, setMentorResponse] = useState("");
   const [mentorComments, setMentorComments] = useState<LiveComment[]>([]);
   const [mentorError, setMentorError] = useState("");
   const [isMentorLoading, setIsMentorLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const selectedFile = useMemo(() => findNodeById(tree, selectedFileId), [tree, selectedFileId]);
 
@@ -96,6 +104,10 @@ export function MainIDE() {
   }, [code, language, persistedCode, selectedFileId, workspace?.id]);
 
   useEffect(() => {
+    if (activeAITab === "Chat") {
+      return;
+    }
+
     if (!workspace?.id || !selectedFileId || !code.trim()) {
       setMentorComments([]);
       if (!code.trim()) {
@@ -116,27 +128,43 @@ export function MainIDE() {
   async function initializeWorkspace() {
     setIsWorkspaceLoading(true);
     try {
-      const workspaces = await listWorkspaces();
-      let nextWorkspace = workspaces.find((item) => item.id === rememberedWorkspace.workspaceId) ?? workspaces[0];
-
+      const nextWorkspace = await ensureWorkspaceExists();
       if (!nextWorkspace) {
-        nextWorkspace = await createWorkspace({
-          name: "My Workspace",
-          description: "Default workspace created by ExplainMyCode",
-        });
+        return null;
       }
-
       setWorkspace(nextWorkspace);
       setCurrentWorkspaceState(nextWorkspace.id, rememberedWorkspace.fileId);
       await loadTree(nextWorkspace, rememberedWorkspace.fileId ?? undefined);
+      return nextWorkspace;
     } catch (error) {
       pushTerminalLines([
         "> Failed to load workspace",
         error instanceof ApiError ? error.message : "Unexpected error while loading your files.",
       ]);
+      return null;
     } finally {
       setIsWorkspaceLoading(false);
     }
+  }
+
+  async function ensureWorkspaceExists() {
+    if (workspace) {
+      return workspace;
+    }
+
+    const workspaces = await listWorkspaces();
+    let nextWorkspace = workspaces.find((item) => item.id === rememberedWorkspace.workspaceId) ?? workspaces[0];
+
+    if (!nextWorkspace) {
+      nextWorkspace = await createWorkspace({
+        name: "My Workspace",
+        description: "Default workspace created by ExplainMyCode",
+      });
+    }
+
+    setWorkspace(nextWorkspace);
+    setCurrentWorkspaceState(nextWorkspace.id, rememberedWorkspace.fileId);
+    return nextWorkspace;
   }
 
   async function loadTree(targetWorkspace: Workspace, preferredFileId?: string) {
@@ -172,6 +200,7 @@ export function MainIDE() {
     setMentorResponse("");
     setMentorComments([]);
     setMentorError("");
+    setChatMessages([]);
     setCurrentWorkspaceState(workspaceIdOverride ?? workspace?.id ?? node.workspace_id, node.id);
     setCurrentCodeState(nextCode, nextLanguage);
   }
@@ -197,11 +226,14 @@ export function MainIDE() {
   }
 
   async function createAndSelectFile(name: string, content: string, fileLanguage: string) {
-    if (!workspace) {
+    const targetWorkspace = await ensureWorkspaceExists();
+    if (!targetWorkspace) {
+      pushTerminalLines(["> Workspace is still loading. Please try again in a moment."]);
       return;
     }
+
     const parent = findPreferredParent(tree);
-    const created = await createWorkspaceNode(workspace.id, {
+    const created = await createWorkspaceNode(targetWorkspace.id, {
       parentId: parent?.id ?? null,
       name,
       type: "file",
@@ -209,26 +241,33 @@ export function MainIDE() {
       content,
     });
     setTree((currentTree) => insertNode(currentTree, created, parent?.id ?? null));
-    selectFile(created);
+    selectFile(created, targetWorkspace.id);
   }
 
   async function handleCreateFile() {
     const suggestedName = uniqueFileName("main.py", flattenFiles(tree).map((node) => node.name));
     const name = window.prompt("Enter a file name", suggestedName)?.trim();
-    if (!name || !workspace) {
+    if (!name) {
       return;
     }
 
     try {
-      const created = await createWorkspaceNode(workspace.id, {
-        parentId: findPreferredParent(tree)?.id ?? null,
+      const targetWorkspace = await ensureWorkspaceExists();
+      if (!targetWorkspace) {
+        pushTerminalLines(["> Workspace is still loading. Please try again in a moment."]);
+        return;
+      }
+
+      const preferredParent = findPreferredParent(tree);
+      const created = await createWorkspaceNode(targetWorkspace.id, {
+        parentId: preferredParent?.id ?? null,
         name,
         type: "file",
         language: inferLanguageFromName(name),
         content: "",
       });
-      setTree((currentTree) => insertNode(currentTree, created, findPreferredParent(currentTree)?.id ?? null));
-      selectFile(created);
+      setTree((currentTree) => insertNode(currentTree, created, preferredParent?.id ?? null));
+      selectFile(created, targetWorkspace.id);
     } catch (error) {
       pushTerminalLines([
         "> File creation failed",
@@ -273,6 +312,7 @@ export function MainIDE() {
       const result = await runCode({
         sourceCode: code,
         language,
+        stdin,
         workspaceId: workspace.id,
         filename: selectedFile.name,
       });
@@ -379,23 +419,43 @@ export function MainIDE() {
 
   async function handleSendMentorMessage(message: string) {
     if (!workspace?.id || !selectedFile) {
+      setMentorError("Select or create a file before chatting with the mentor.");
       return;
     }
 
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) {
+      return;
+    }
+
+    const nextHistory = [...chatMessages, { role: "user" as const, content: trimmedMessage }];
+    setChatMessages(nextHistory);
     setExplanationMode("section");
     setSelectedLine(null);
-    setActiveAITab("Explanation");
+    setActiveAITab("Chat");
     setIsMentorLoading(true);
     setMentorError("");
     try {
       const response = await sendMentorChat({
         code,
         language,
-        message,
+        message: trimmedMessage,
         filename: selectedFile.name,
         workspaceId: workspace.id,
+        history: nextHistory.map((entry) => ({
+          role: entry.role,
+          content: entry.content,
+        })),
       });
-      setMentorResponse(formatChat(response.answer, response.follow_ups));
+      setChatMessages([
+        ...nextHistory,
+        {
+          role: "assistant",
+          content: response.answer,
+          followUps: response.follow_ups,
+          citations: response.citations,
+        },
+      ]);
     } catch (error) {
       setMentorError(error instanceof ApiError ? error.message : "Unable to send your question.");
     } finally {
@@ -439,14 +499,23 @@ export function MainIDE() {
                       onLineClick={handleLineClick}
                     />
                   ) : (
-                    <WelcomeScreen onTrySampleCode={() => void handleTrySampleCode()} onOpenEditor={() => void handleOpenEditor()} />
+                    <WelcomeScreen
+                      onTrySampleCode={() => void handleTrySampleCode()}
+                      onOpenEditor={() => void handleOpenEditor()}
+                      isLoading={isWorkspaceLoading && !workspace}
+                    />
                   )}
                 </Panel>
 
                 <PanelResizeHandle className="h-[1px] bg-[#1f2937] hover:bg-[#22c55e] transition-colors" />
 
                 <Panel defaultSize={30} minSize={15}>
-                  <Terminal output={terminalOutput} onClear={() => setTerminalOutput([])} />
+                  <Terminal
+                    output={terminalOutput}
+                    stdin={stdin}
+                    onStdinChange={setStdin}
+                    onClear={() => setTerminalOutput([])}
+                  />
                 </Panel>
               </PanelGroup>
             ) : (
@@ -460,7 +529,11 @@ export function MainIDE() {
                     onLineClick={handleLineClick}
                   />
                 ) : (
-                  <WelcomeScreen onTrySampleCode={() => void handleTrySampleCode()} onOpenEditor={() => void handleOpenEditor()} />
+                  <WelcomeScreen
+                    onTrySampleCode={() => void handleTrySampleCode()}
+                    onOpenEditor={() => void handleOpenEditor()}
+                    isLoading={isWorkspaceLoading && !workspace}
+                  />
                 )}
               </div>
             )}
@@ -474,10 +547,12 @@ export function MainIDE() {
               onTabChange={handleTabChange}
               response={mentorResponse}
               comments={mentorComments}
+              chatMessages={chatMessages}
               isLoading={isMentorLoading}
               code={code}
               errorMessage={mentorError}
               onSendMessage={handleSendMentorMessage}
+              canChat={Boolean(workspace?.id && selectedFile)}
             />
           </Panel>
         </PanelGroup>
@@ -626,9 +701,4 @@ function formatAssumptions(assumptions: Array<{ title: string; category: string;
   return `# Assumptions\n\n${assumptions
     .map((assumption) => `**${assumption.title}**\n${assumption.description}\n- Category: ${assumption.category}`)
     .join("\n\n")}`;
-}
-
-function formatChat(answer: string, followUps: string[]) {
-  const followUpText = followUps.length ? `\n\n${followUps.map((item) => `- ${item}`).join("\n")}` : "";
-  return `# Mentor Chat\n\n${answer}${followUpText}`;
 }

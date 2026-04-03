@@ -1,9 +1,8 @@
-import json
-
 import httpx
 
 from app.core.config import settings
 from app.integrations.llm.base import BaseLLMProvider
+from app.integrations.llm.json_utils import parse_json_response
 
 
 class GroqProvider(BaseLLMProvider):
@@ -14,7 +13,7 @@ class GroqProvider(BaseLLMProvider):
         return payload["choices"][0]["message"]["content"]
 
     def generate_json(self, system_prompt: str, user_prompt: str) -> dict:
-        return json.loads(self.generate_text(system_prompt, user_prompt))
+        return parse_json_response(self.generate_text(system_prompt, user_prompt))
 
     def _chat_completion(self, system_prompt: str, user_prompt: str) -> dict:
         with httpx.Client(timeout=20.0) as client:

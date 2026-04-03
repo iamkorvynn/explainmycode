@@ -6,7 +6,7 @@ FastAPI backend for the ExplainMyCode frontend.
 
 - JWT auth with signup, login, refresh, logout, forgot/reset password
 - persisted workspaces and file tree
-- code execution abstraction with Judge0 support and local mock fallback
+- code execution abstraction with OneCompiler, Compiler.io, Judge0, and local mock fallback
 - AI mentor endpoints for comments, summary, explanation, bugs, assumptions, on-track status, and mentor chat
 - analysis dashboard payload generation
 - visualization trace endpoints
@@ -60,6 +60,10 @@ The API will be available at [http://localhost:8000/docs](http://localhost:8000/
 - `GOOGLE_CLIENT_SECRET`
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
+- `ONECOMPILER_BASE_URL`
+- `ONECOMPILER_API_KEY`
+- `COMPILER_IO_BASE_URL`
+- `COMPILER_IO_API_KEY`
 - `JUDGE0_BASE_URL`
 - `JUDGE0_API_KEY`
 - `SMTP_HOST`

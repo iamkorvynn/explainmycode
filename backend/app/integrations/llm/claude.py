@@ -1,9 +1,8 @@
-import json
-
 import httpx
 
 from app.core.config import settings
 from app.integrations.llm.base import BaseLLMProvider
+from app.integrations.llm.json_utils import parse_json_response
 
 
 class ClaudeProvider(BaseLLMProvider):
@@ -30,4 +29,4 @@ class ClaudeProvider(BaseLLMProvider):
             return payload["content"][0]["text"]
 
     def generate_json(self, system_prompt: str, user_prompt: str) -> dict:
-        return json.loads(self.generate_text(system_prompt, user_prompt))
+        return parse_json_response(self.generate_text(system_prompt, user_prompt))

@@ -15,6 +15,15 @@ from app.models.base import Base
 @pytest.fixture()
 def client(tmp_path: Path):
     settings.seed_demo_data = False
+    settings.llm_mode = "mock"
+    settings.groq_api_key = ""
+    settings.claude_api_key = ""
+    settings.onecompiler_api_key = ""
+    settings.onecompiler_base_url = "https://api.onecompiler.com/v1/run"
+    settings.compiler_io_api_key = ""
+    settings.compiler_io_base_url = "https://api.onlinecompiler.io/api/run-code-sync/"
+    settings.judge0_base_url = ""
+    settings.judge0_api_key = ""
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False}, future=True)
     TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
