@@ -74,12 +74,13 @@ export function MainIDE() {
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(true);
   const [showTerminal, setShowTerminal] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
-  const [stdin, setStdin] = useState("");
   const [mentorResponse, setMentorResponse] = useState("");
   const [mentorComments, setMentorComments] = useState<LiveComment[]>([]);
   const [mentorError, setMentorError] = useState("");
   const [isMentorLoading, setIsMentorLoading] = useState(false);
+  const [isTerminalRunning, setIsTerminalRunning] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [stdin, setStdin] = useState("");
 
   const selectedFile = useMemo(() => findNodeById(tree, selectedFileId), [tree, selectedFileId]);
 
@@ -308,6 +309,7 @@ export function MainIDE() {
 
     try {
       setShowTerminal(true);
+      setIsTerminalRunning(true);
       pushTerminalLines([`> Running ${selectedFile.name}...`]);
       const result = await runCode({
         sourceCode: code,
@@ -328,6 +330,8 @@ export function MainIDE() {
         "> Run failed",
         error instanceof ApiError ? error.message : "Unable to execute the current file.",
       ]);
+    } finally {
+      setIsTerminalRunning(false);
     }
   }
 
@@ -512,9 +516,10 @@ export function MainIDE() {
                 <Panel defaultSize={30} minSize={15}>
                   <Terminal
                     output={terminalOutput}
+                    onClear={() => setTerminalOutput([])}
                     stdin={stdin}
                     onStdinChange={setStdin}
-                    onClear={() => setTerminalOutput([])}
+                    isLoading={isTerminalRunning}
                   />
                 </Panel>
               </PanelGroup>
@@ -701,4 +706,22 @@ function formatAssumptions(assumptions: Array<{ title: string; category: string;
   return `# Assumptions\n\n${assumptions
     .map((assumption) => `**${assumption.title}**\n${assumption.description}\n- Category: ${assumption.category}`)
     .join("\n\n")}`;
+}
+
+function looksLikeInteractiveInput(sourceCode: string, language: string) {
+  const normalized = language.toLowerCase();
+  if (normalized === "python" || normalized === "py") {
+    return sourceCode.includes("input(");
+  }
+  if (normalized === "javascript" || normalized === "js" || normalized === "typescript" || normalized === "ts") {
+    return sourceCode.includes("prompt(") || sourceCode.toLowerCase().includes("readline");
+  }
+  if (normalized === "java") {
+    const lower = sourceCode.toLowerCase();
+    return lower.includes("scanner") || lower.includes("bufferedreader");
+  }
+  if (normalized === "cpp" || normalized === "c++") {
+    return sourceCode.includes("cin >>") || sourceCode.replace(/\s/g, "").includes("getline(cin");
+  }
+  return /\bstdin\b/i.test(sourceCode);
 }

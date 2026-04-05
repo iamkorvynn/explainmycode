@@ -17,4 +17,4 @@ def looks_like_interactive_input(source_code: str, language: str) -> bool:
 
 
 def missing_input_message() -> str:
-    return "Program is waiting for stdin input. Add input in the terminal panel and run again."
+    return "Interactive stdin is not supported in this web app right now. Replace input() calls with fixed test values in code, then run again."
