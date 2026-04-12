@@ -18,6 +18,7 @@ def client(tmp_path: Path):
     settings.llm_mode = "mock"
     settings.groq_api_key = ""
     settings.claude_api_key = ""
+    settings.execution_provider_order = ["onecompiler", "compiler-io", "judge0"]
     settings.onecompiler_api_key = ""
     settings.onecompiler_base_url = "https://api.onecompiler.com/v1/run"
     settings.compiler_io_api_key = ""

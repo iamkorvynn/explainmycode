@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     github_client_id: str = ""
     github_client_secret: str = ""
+    execution_provider_order: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["onecompiler", "compiler-io", "judge0"]
+    )
     onecompiler_base_url: str = "https://api.onecompiler.com/v1/run"
     onecompiler_api_key: str = ""
     compiler_io_base_url: str = "https://api.onlinecompiler.io/api/run-code-sync/"
@@ -58,6 +61,31 @@ class Settings(BaseSettings):
     @classmethod
     def normalize_environment(cls, value: str) -> str:
         return value.lower().strip()
+
+    @field_validator("execution_provider_order", mode="before")
+    @classmethod
+    def parse_execution_provider_order(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, str):
+            return [provider.strip() for provider in value.split(",") if provider.strip()]
+        return value
+
+    @field_validator("execution_provider_order")
+    @classmethod
+    def validate_execution_provider_order(cls, value: list[str]) -> list[str]:
+        allowed = {"judge0", "onecompiler", "compiler-io"}
+        normalized: list[str] = []
+        for provider in value:
+            name = provider.lower().strip()
+            if name not in allowed:
+                raise ValueError(
+                    f"EXECUTION_PROVIDER_ORDER contains unsupported provider '{provider}'. "
+                    "Use judge0, onecompiler, or compiler-io."
+                )
+            if name not in normalized:
+                normalized.append(name)
+        if not normalized:
+            raise ValueError("EXECUTION_PROVIDER_ORDER must include at least one provider.")
+        return normalized
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> "Settings":

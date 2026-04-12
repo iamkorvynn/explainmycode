@@ -16,85 +16,118 @@
   - frontend nginx image
   - full-stack `docker-compose.deploy.yml`
 
-## What You Need To Do
+## Recommended Production Topology
 
-You still need to provide real infrastructure and secrets. These cannot be safely guessed inside the repo.
+Use the split deploy that is already represented in this repo:
 
-1. Create the production env files:
+- Vercel for the Vite SPA
+- Render for the Dockerized FastAPI API
+- Render Postgres for the primary database
+- Render Key Value for shared rate limiting and future background jobs
+
+The checked-in `render.yaml` now provisions:
+
+- `explainmycode-api` as a Docker web service
+- `explainmycode-db` as managed Postgres
+- `explainmycode-cache` as managed Key Value with internal-only access
+
+It also pins these production behaviors:
+
+- `RUN_DB_MIGRATIONS=true`
+- `SEED_DEMO_DATA=false`
+- `LLM_MODE=live`
+- `EXECUTION_PROVIDER_ORDER=judge0,onecompiler,compiler-io`
+- `ONECOMPILER_API_KEY` and `COMPILER_IO_API_KEY` set blank unless you intentionally re-enable them
+
+## Render Backend Setup
+
+1. Create the Render Blueprint from [render.yaml](render.yaml).
+2. In Render, fill the secret backend env vars for `explainmycode-api`:
+
+- `SECRET_KEY`
+- `CORS_ORIGINS`
+- `FRONTEND_BASE_URL`
+- `BACKEND_BASE_URL`
+- `GROQ_API_KEY`
+- `CLAUDE_API_KEY` if you want a second LLM fallback
+- `JUDGE0_BASE_URL`
+- `JUDGE0_API_KEY`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASSWORD`
+- `EMAIL_FROM`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+
+3. Keep one stable backend URL for OAuth and one stable frontend URL for CORS and reset links.
+4. Confirm the deployed API responds on:
+
+- `/api/v1/health`
+- `/api/v1/health/ready`
+
+## Vercel Frontend Setup
+
+Deploy the repo root as a Vite project on Vercel and set:
+
+- build command: `npm run build`
+- output directory: `dist`
+- production env: `VITE_API_BASE_URL=https://your-backend-domain.com/api/v1`
+
+Then mirror that same stable frontend URL into the backend:
+
+- `FRONTEND_BASE_URL=https://your-frontend-domain.com`
+- `CORS_ORIGINS=https://your-frontend-domain.com`
+
+Do not use temporary preview URLs for OAuth or reset-link setup. Use one stable production URL, especially because GitHub OAuth Apps support a single callback URL.
+
+## Optional Docker Validation
+
+For a final local production rehearsal before going live:
+
+1. Copy the production env templates:
 
 ```bash
 copy .env.production.example .env.production
 copy backend\.env.production.example backend\.env.production
 ```
 
-2. Edit `backend/.env.production` and set:
-
-- `SECRET_KEY`: a long random secret
-- `DATABASE_URL`: your real PostgreSQL connection string
-- `CORS_ORIGINS`: your real frontend origin
-- `FRONTEND_BASE_URL`: your real frontend public URL
-- `BACKEND_BASE_URL`: your real backend public URL used for OAuth callbacks
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_FROM`: for password reset emails
-- `GROQ_API_KEY` and/or `CLAUDE_API_KEY`: if you want live AI instead of heuristic fallback
-- `JUDGE0_BASE_URL` and `JUDGE0_API_KEY`: if you want real remote code execution instead of the safe mock fallback
-- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`: if you want Google login
-- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`: if you want GitHub login
-
-3. Decide whether you want demo data in production.
-
-- Recommended: keep `SEED_DEMO_DATA=false`
-- Only set it to `true` for private staging/demo environments
-
-4. Start the deployment stack:
+2. Edit `backend/.env.production` with your real or staging values.
+3. Start the full production stack:
 
 ```bash
 npm run docker:up
 ```
 
-5. Verify these URLs:
+4. Verify:
 
 - frontend: `http://localhost:8080`
 - proxied backend docs: `http://localhost:8080/docs`
 - direct backend health: `http://localhost:8000/api/v1/health`
 - readiness: `http://localhost:8000/api/v1/health/ready`
 
-## Recommended Real-World Production Setup
+## CI Release Gate
 
-- Frontend container behind HTTPS on your public domain
-- Backend container on a private network
-- Managed PostgreSQL
-- Redis for shared rate limiting and future background jobs
-- SMTP or transactional email provider
-- Optional Groq or Claude keys for live mentor responses
-- Optional Judge0 service for live code execution
+The repo now includes GitHub Actions CI in `.github/workflows/ci.yml`. Every PR and every push to `main` should pass:
 
-## Vercel Frontend Setup
+- `npm run build`
+- `python -m pytest tests -q` in `backend`
 
-If you deploy the frontend to Vercel, use your stable production Vercel URL or your custom domain as the frontend public URL.
+## Launch Smoke Test
 
-Example:
-
-- `https://your-project.vercel.app`
-
-Then configure:
-
-- Vercel env: `VITE_API_BASE_URL=https://your-backend-domain.com/api/v1`
-- backend env: `FRONTEND_BASE_URL=https://your-project.vercel.app`
-- backend env: `CORS_ORIGINS=https://your-project.vercel.app`
-
-Do not use temporary preview URLs for OAuth provider setup. Use one stable production URL, especially because GitHub OAuth Apps support a single callback URL.
-
-## Post-Deploy Smoke Test
-
-After deploy, test these flows in order:
+Run this exact checklist against the production URLs before launch:
 
 1. Sign up a fresh account.
 2. Log in and open the IDE.
-3. Create a file and confirm autosave works.
-4. Run code and confirm whether the response comes from `judge0` or `mock-judge0`.
-5. Open the mentor tabs and confirm provider labels match your configuration.
+3. Create a workspace or file, refresh the page, and confirm persistence.
+4. Run code and confirm the response provider is `judge0`, not `mock-judge0`.
+5. Open the mentor, dashboard, and visualization flows and confirm their provider labels are live, not `mock`.
 6. Request a password reset and confirm the email link lands on `/reset-password`.
-7. Open the dashboard and visualization views.
+7. Complete both Google and GitHub OAuth sign-in flows.
+8. Check `/api/v1/health` and `/api/v1/health/ready` after the deploy finishes.
+9. Launch only after one clean end-to-end pass on the final domains.
 
 ## OAuth Setup
 

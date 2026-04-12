@@ -135,6 +135,49 @@ def test_workspace_mentor_and_analysis_flow(client):
     assert dashboard.json()["metrics"]["functions"] == 1
 
 
+def test_visualization_library_and_generation_flow(client):
+    payload = signup_and_login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+
+    library = client.get("/api/v1/visualizations", headers=headers)
+    assert library.status_code == 200
+    assert any(item["id"] == "merge-sort" for item in library.json())
+
+    template = client.get("/api/v1/visualizations/binary-search", headers=headers)
+    assert template.status_code == 200
+    assert template.json()["source"] == "template"
+    assert template.json()["visualization_type"] == "array"
+
+    generated_from_code = client.post(
+        "/api/v1/visualizations/generate",
+        json={
+            "code": "def binary_search(arr, target):\n    left = 0\n    right = len(arr) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        return mid\n",
+            "language": "python",
+        },
+        headers=headers,
+    )
+    assert generated_from_code.status_code == 200
+    generated_payload = generated_from_code.json()
+    assert generated_payload["source"] == "generated"
+    assert generated_payload["title"] == "Binary Search"
+    assert generated_payload["steps"]
+
+    generated_from_prompt = client.post(
+        "/api/v1/visualizations/generate",
+        json={
+            "algorithm_name": "Dijkstra shortest path",
+            "prompt": "Show the main phases for finding the shortest route from a start node to all other nodes.",
+            "language": "python",
+        },
+        headers=headers,
+    )
+    assert generated_from_prompt.status_code == 200
+    prompt_payload = generated_from_prompt.json()
+    assert prompt_payload["source"] == "generated"
+    assert "Dijkstra" in prompt_payload["title"]
+    assert prompt_payload["steps"][0]["label"] == "Define the goal"
+
+
 def test_execution_prefers_onecompiler_when_configured(client, monkeypatch):
     payload = signup_and_login(client)
     headers = {"Authorization": f"Bearer {payload['access_token']}"}
@@ -257,6 +300,34 @@ def test_live_ai_routes_use_provider_payloads(client, monkeypatch):
                     }
                 ],
             }, "claude"
+        if "Task: visualization" in user_prompt:
+            return {
+                "algorithm": "binary-search",
+                "title": "Binary Search",
+                "description": "Live visualization from the provider.",
+                "visualization_type": "array",
+                "steps": [
+                    {
+                        "index": 0,
+                        "label": "Pick the midpoint",
+                        "narration": "The midpoint becomes the next comparison target.",
+                        "state": {
+                            "variables": [{"name": "mid", "value": "2"}],
+                            "collections": [
+                                {
+                                    "label": "Sorted Array",
+                                    "layout": "array",
+                                    "items": [
+                                        {"label": "0", "value": "1", "status": "dimmed"},
+                                        {"label": "1", "value": "3", "status": "boundary"},
+                                        {"label": "2", "value": "5", "status": "active"},
+                                    ],
+                                }
+                            ],
+                        },
+                    }
+                ],
+            }, "claude"
         raise AssertionError(f"Unexpected prompt: {user_prompt[:80]}")
 
     monkeypatch.setattr("app.services.live_llm.LiveLLMClient.generate_json", fake_generate_json)
@@ -313,3 +384,12 @@ def test_live_ai_routes_use_provider_payloads(client, monkeypatch):
     assert dashboard.status_code == 200
     assert dashboard.json()["provider"] == "claude"
     assert dashboard.json()["suggestions"][0]["title"] == "Add an empty-input guard"
+
+    visualization = client.post(
+        "/api/v1/visualizations/generate",
+        json={"code": code, "language": "python"},
+        headers=headers,
+    )
+    assert visualization.status_code == 200
+    assert visualization.json()["provider"] == "claude"
+    assert visualization.json()["steps"][0]["label"] == "Pick the midpoint"

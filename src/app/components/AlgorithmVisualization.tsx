@@ -1,17 +1,37 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Play, Pause, RotateCcw, SkipForward, LogOut } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, SkipForward, LogOut, Sparkles, Wand2, Library, Code2 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
-import { ApiError, getVisualization, listVisualizations, type VisualizationDetail, type VisualizationSummary } from "../lib/api";
+import {
+  ApiError,
+  generateVisualization,
+  getCurrentCodeState,
+  getVisualization,
+  listVisualizations,
+  type VisualizationDetail,
+  type VisualizationSummary,
+} from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+
+type SourceMode = "editor" | "scratch";
+type VisualItem = { label?: string; value?: string; status?: string };
+type VisualCollection = { label?: string; layout?: string; items?: VisualItem[] };
+type VisualVariable = { name?: string; value?: string };
+type VisualNode = { id?: string; label?: string; status?: string };
+type VisualEdge = { from?: string; to?: string };
 
 export function AlgorithmVisualization() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [algorithms, setAlgorithms] = useState<VisualizationSummary[]>([]);
-  const [activeAlgorithm, setActiveAlgorithm] = useState<string>("");
+  const currentCode = getCurrentCodeState();
+
+  const [templates, setTemplates] = useState<VisualizationSummary[]>([]);
   const [detail, setDetail] = useState<VisualizationDetail | null>(null);
+  const [activeTemplateId, setActiveTemplateId] = useState("");
+  const [sourceMode, setSourceMode] = useState<SourceMode>(currentCode.code.trim() ? "editor" : "scratch");
+  const [algorithmName, setAlgorithmName] = useState("");
+  const [prompt, setPrompt] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,46 +43,90 @@ export function AlgorithmVisualization() {
   }, [detail, stepIndex]);
 
   useEffect(() => {
-    void loadAlgorithms();
+    void initializePage();
   }, []);
 
   useEffect(() => {
-    if (!isPlaying || !detail?.steps.length) {
-      return;
-    }
-    const interval = setInterval(() => {
-      setStepIndex((current) => (current + 1) % detail.steps.length);
-    }, 800);
-    return () => clearInterval(interval);
+    if (!isPlaying || !detail?.steps.length) return;
+    const timer = window.setInterval(() => {
+      setStepIndex((current) => {
+        if (!detail?.steps.length) return current;
+        if (current >= detail.steps.length - 1) {
+          setIsPlaying(false);
+          return current;
+        }
+        return current + 1;
+      });
+    }, 950);
+    return () => window.clearInterval(timer);
   }, [detail?.steps.length, isPlaying]);
 
-  async function loadAlgorithms() {
+  async function initializePage() {
     setIsLoading(true);
     setErrorMessage("");
     try {
       const summaries = await listVisualizations();
-      setAlgorithms(summaries);
-      if (summaries.length) {
-        await loadVisualization(summaries[0].id);
+      setTemplates(summaries);
+      if (currentCode.code.trim()) {
+        await handleGenerate("editor", true);
+      } else if (summaries.length) {
+        await loadTemplate(summaries[0].id);
       }
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "Unable to load algorithm visualizations.");
+      setErrorMessage(error instanceof ApiError ? error.message : "Unable to load the visualization workspace.");
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function loadVisualization(algorithmId: string) {
+  async function loadTemplate(templateId: string) {
     setIsLoading(true);
-    setErrorMessage("");
     setIsPlaying(false);
     setStepIndex(0);
+    setErrorMessage("");
     try {
-      const response = await getVisualization(algorithmId);
-      setActiveAlgorithm(algorithmId);
+      const response = await getVisualization(templateId);
+      setActiveTemplateId(templateId);
       setDetail(response);
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "Unable to load the selected visualization.");
+      setErrorMessage(error instanceof ApiError ? error.message : "Unable to load the selected template.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleGenerate(mode: SourceMode = sourceMode, keepTemplateSelection = false) {
+    const trimmedAlgorithm = algorithmName.trim();
+    const trimmedPrompt = prompt.trim();
+    const usesEditor = mode === "editor";
+
+    if (usesEditor && !currentCode.code.trim()) {
+      setErrorMessage("Open a file in the IDE first so the visualizer can build from your current code.");
+      return;
+    }
+
+    if (!usesEditor && !trimmedAlgorithm && !trimmedPrompt) {
+      setErrorMessage("Describe the algorithm or give it a name so the visualizer has something to build.");
+      return;
+    }
+
+    setIsLoading(true);
+    setIsPlaying(false);
+    setStepIndex(0);
+    setErrorMessage("");
+    try {
+      const response = await generateVisualization({
+        code: usesEditor ? currentCode.code : undefined,
+        language: currentCode.language || "python",
+        algorithmName: trimmedAlgorithm || undefined,
+        prompt: trimmedPrompt || undefined,
+      });
+      if (!keepTemplateSelection) {
+        setActiveTemplateId("");
+      }
+      setDetail(response);
+    } catch (error) {
+      setErrorMessage(error instanceof ApiError ? error.message : "Unable to generate the visualization right now.");
     } finally {
       setIsLoading(false);
     }
@@ -76,212 +140,331 @@ export function AlgorithmVisualization() {
   return (
     <div className="h-screen w-screen bg-[#020617] text-[#e5e7eb] flex flex-col overflow-hidden">
       <div className="h-14 bg-[#111827] border-b border-[#1f2937] flex items-center px-4 gap-4">
-        <button
-          onClick={() => navigate("/ide")}
-          className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#374151] transition-colors flex items-center justify-center"
-        >
+        <button onClick={() => navigate("/ide")} className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#374151] transition-colors flex items-center justify-center">
           <ArrowLeft className="w-4 h-4" />
         </button>
-
-        <div className="flex items-center gap-2 flex-1">
-          <div className="w-8 h-8 bg-gradient-to-br from-[#22c55e] to-[#3b82f6] rounded-lg flex items-center justify-center">
-            <motion.div animate={{ rotate: isPlaying ? 360 : 0 }} transition={{ duration: 2, repeat: isPlaying ? Infinity : 0, ease: "linear" }}>
-              Viz
-            </motion.div>
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#22c55e] to-[#3b82f6] flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
-          <span className="font-semibold text-lg">Algorithm Visualization</span>
+          <div>
+            <div className="font-semibold text-lg">Algorithm Visualizer</div>
+            <div className="text-xs text-[#94a3b8]">Generate walkthroughs from editor code or from scratch.</div>
+          </div>
         </div>
-
-        <button
-          onClick={() => void handleLogout()}
-          className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#ef4444]/20 transition-all flex items-center justify-center group"
-        >
+        <button onClick={() => void handleLogout()} className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#ef4444]/20 transition-all flex items-center justify-center group">
           <LogOut className="w-4 h-4 text-[#9ca3af] group-hover:text-[#ef4444]" />
         </button>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="w-72 bg-[#111827] border-r border-[#1f2937] p-4">
-          <h3 className="text-xs font-semibold text-[#9ca3af] uppercase tracking-wider mb-3">Select Algorithm</h3>
-          <div className="space-y-2">
-            {algorithms.map((algorithm) => (
-              <button
-                key={algorithm.id}
-                onClick={() => void loadVisualization(algorithm.id)}
-                className={`w-full px-4 py-3 rounded-lg text-left transition-all ${
-                  activeAlgorithm === algorithm.id
-                    ? "bg-[#22c55e]/10 border border-[#22c55e] text-[#22c55e]"
-                    : "bg-[#1f2937] border border-[#374151] text-[#e5e7eb] hover:bg-[#374151]"
-                }`}
-              >
-                <div className="font-medium text-sm mb-1">{algorithm.title}</div>
-                <div className="text-xs text-[#9ca3af]">{algorithm.description}</div>
-              </button>
-            ))}
-          </div>
-        </div>
+        <aside className="w-[340px] bg-[#111827] border-r border-[#1f2937] p-4 overflow-auto">
+          <div className="rounded-2xl border border-[#1f2937] bg-[#0f172a] p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Wand2 className="w-4 h-4 text-[#22c55e]" />
+              <h2 className="font-semibold">Build A Visualization</h2>
+            </div>
 
-        <div className="flex-1 flex flex-col">
-          <div className="h-16 bg-[#111827] border-b border-[#1f2937] flex items-center justify-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setStepIndex(0);
-                setIsPlaying(false);
-              }}
-              className="w-10 h-10 rounded-lg bg-[#1f2937] hover:bg-[#374151] transition-colors flex items-center justify-center"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </motion.button>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <ModeButton active={sourceMode === "editor"} label="Current Code" icon={<Code2 className="w-4 h-4" />} onClick={() => setSourceMode("editor")} />
+              <ModeButton active={sourceMode === "scratch"} label="From Scratch" icon={<Wand2 className="w-4 h-4" />} onClick={() => setSourceMode("scratch")} />
+            </div>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsPlaying((value) => !value)}
-              className="w-12 h-12 rounded-lg bg-[#22c55e] hover:bg-[#16a34a] transition-colors flex items-center justify-center shadow-lg shadow-[#22c55e]/30"
-              disabled={!detail?.steps.length}
-            >
-              {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (!detail?.steps.length) return;
-                setStepIndex((current) => Math.min(current + 1, detail.steps.length - 1));
-              }}
-              className="w-10 h-10 rounded-lg bg-[#1f2937] hover:bg-[#374151] transition-colors flex items-center justify-center"
-              disabled={!detail?.steps.length}
-            >
-              <SkipForward className="w-4 h-4" />
-            </motion.button>
-          </div>
-
-          <div className="flex-1 p-8 overflow-auto">
-            {isLoading ? (
-              <div className="rounded-lg border border-[#1f2937] bg-[#111827] p-8 text-sm text-[#9ca3af]">Loading visualization...</div>
-            ) : errorMessage ? (
-              <div className="rounded-lg border border-[#ef4444]/40 bg-[#7f1d1d]/30 p-6 text-sm text-[#fecaca]">{errorMessage}</div>
-            ) : detail && currentStep ? (
-              <AnimatePresence mode="wait">
-                <motion.div key={`${detail.algorithm}-${currentStep.index}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col gap-6">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-xl font-semibold">{detail.title}</h2>
-                      <p className="text-sm text-[#9ca3af]">{detail.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-[#22c55e]">{currentStep.label}</div>
-                      <div className="text-xs text-[#6b7280]">
-                        Step {currentStep.index + 1} of {detail.steps.length}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-h-[420px] rounded-2xl border border-[#1f2937] bg-[#111827] p-8">
-                    <VisualizationCanvas detail={detail} step={currentStep} />
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+            {sourceMode === "editor" ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-[#1f2937] bg-[#111827] p-3">
+                  <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Editor Snapshot</div>
+                  <div className="text-sm text-[#e5e7eb]">{currentCode.code.trim() ? "Current file is ready to visualize." : "No open code detected yet."}</div>
+                  <div className="text-xs text-[#94a3b8] mt-2">Language: {currentCode.language || "python"}</div>
+                </div>
+                <button onClick={() => void handleGenerate("editor")} className="w-full h-11 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] transition-colors font-medium text-white">
+                  Generate From Current Code
+                </button>
+              </div>
             ) : (
-              <div className="rounded-lg border border-[#1f2937] bg-[#111827] p-8 text-sm text-[#9ca3af]">
-                Select an algorithm to load the visualization.
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Algorithm Name</label>
+                  <input
+                    value={algorithmName}
+                    onChange={(event) => setAlgorithmName(event.target.value)}
+                    placeholder="Dijkstra shortest path"
+                    className="w-full h-11 rounded-xl border border-[#1f2937] bg-[#111827] px-3 text-sm outline-none focus:border-[#3b82f6]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Prompt</label>
+                  <textarea
+                    value={prompt}
+                    onChange={(event) => setPrompt(event.target.value)}
+                    placeholder="Show the main phases, data structures, and how the state changes over time."
+                    rows={5}
+                    className="w-full rounded-xl border border-[#1f2937] bg-[#111827] px-3 py-3 text-sm outline-none resize-none focus:border-[#3b82f6]"
+                  />
+                </div>
+                <button onClick={() => void handleGenerate("scratch")} className="w-full h-11 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] transition-colors font-medium text-white">
+                  Create From Scratch
+                </button>
               </div>
             )}
           </div>
+
+          <div className="rounded-2xl border border-[#1f2937] bg-[#0f172a] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Library className="w-4 h-4 text-[#3b82f6]" />
+              <h3 className="font-semibold">Template Library</h3>
+            </div>
+            <div className="space-y-2">
+              {templates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => void loadTemplate(template.id)}
+                  className={`w-full text-left rounded-xl border px-3 py-3 transition-all ${
+                    activeTemplateId === template.id
+                      ? "border-[#22c55e] bg-[#22c55e]/10"
+                      : "border-[#1f2937] bg-[#111827] hover:border-[#374151] hover:bg-[#182235]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <div className="font-medium text-sm">{template.title}</div>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-[#64748b]">{template.category}</span>
+                  </div>
+                  <div className="text-xs text-[#94a3b8]">{template.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="h-16 bg-[#111827] border-b border-[#1f2937] flex items-center justify-center gap-4 px-6">
+            <ControlButton onClick={() => { setStepIndex(0); setIsPlaying(false); }} icon={<RotateCcw className="w-4 h-4" />} />
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setIsPlaying((value) => !value)}
+              disabled={!detail?.steps.length}
+              className="w-12 h-12 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center shadow-lg shadow-[#22c55e]/20"
+            >
+              {isPlaying ? <Pause className="w-5 h-5 text-white" /> : <Play className="w-5 h-5 text-white ml-0.5" />}
+            </motion.button>
+            <ControlButton
+              onClick={() => detail?.steps.length && setStepIndex((current) => Math.min(current + 1, detail.steps.length - 1))}
+              icon={<SkipForward className="w-4 h-4" />}
+              disabled={!detail?.steps.length}
+            />
+          </div>
+
+          <div className="flex-1 overflow-auto p-6">
+            {isLoading ? (
+              <PanelMessage>Generating the visualization workspace...</PanelMessage>
+            ) : errorMessage ? (
+              <PanelMessage tone="error">{errorMessage}</PanelMessage>
+            ) : detail && currentStep ? (
+              <div className="max-w-7xl mx-auto space-y-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl font-semibold">{detail.title}</h1>
+                    <p className="text-sm text-[#94a3b8] mt-1 max-w-3xl">{detail.description}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <Badge>{detail.visualization_type}</Badge>
+                    <Badge>{detail.source}</Badge>
+                    <Badge>{detail.provider}</Badge>
+                    <Badge>{detail.steps.length} steps</Badge>
+                  </div>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div key={`${detail.algorithm}-${currentStep.index}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <VisualizationCanvas step={currentStep} />
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="rounded-2xl border border-[#1f2937] bg-[#111827] p-4">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div>
+                      <div className="text-sm font-semibold">{currentStep.label}</div>
+                      <div className="text-xs text-[#94a3b8]">Step {currentStep.index + 1} of {detail.steps.length}</div>
+                    </div>
+                    <div className="text-sm text-[#22c55e]">{currentStep.narration || "Follow the state transition."}</div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {detail.steps.map((step) => (
+                      <button
+                        key={`${detail.algorithm}-${step.index}`}
+                        onClick={() => { setStepIndex(step.index); setIsPlaying(false); }}
+                        className={`px-3 py-2 rounded-xl text-sm transition-all ${
+                          step.index === currentStep.index
+                            ? "bg-[#22c55e]/15 text-[#22c55e] border border-[#22c55e]/50"
+                            : "bg-[#0f172a] text-[#cbd5e1] border border-[#1f2937] hover:border-[#334155]"
+                        }`}
+                      >
+                        {step.index + 1}. {step.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <PanelMessage>Select a template or generate a visualization to get started.</PanelMessage>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function VisualizationCanvas({ step }: { step: VisualizationDetail["steps"][number] }) {
+  const state = step.state as {
+    variables?: VisualVariable[];
+    collections?: VisualCollection[];
+    call_stack?: string[];
+    graph?: { nodes?: VisualNode[]; edges?: VisualEdge[] };
+    focus?: string[];
+    notes?: string[];
+  };
+
+  const variables = Array.isArray(state.variables) ? state.variables : [];
+  const collections = Array.isArray(state.collections) ? state.collections : [];
+  const callStack = Array.isArray(state.call_stack) ? state.call_stack : [];
+  const graph = state.graph && typeof state.graph === "object" ? state.graph : undefined;
+  const focus = Array.isArray(state.focus) ? state.focus : [];
+  const notes = Array.isArray(state.notes) ? state.notes : [];
+
+  return (
+    <div className="grid xl:grid-cols-[minmax(0,2fr)_320px] gap-6">
+      <div className="rounded-2xl border border-[#1f2937] bg-[#111827] p-5 min-h-[430px] space-y-5">
+        {variables.length > 0 ? (
+          <div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Variables</div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {variables.map((variable, index) => (
+                <div key={`${variable.name ?? "var"}-${index}`} className="rounded-xl border border-[#1f2937] bg-[#0f172a] px-3 py-3">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-[#64748b]">{variable.name ?? "value"}</div>
+                  <div className="text-sm font-medium mt-1">{String(variable.value ?? "-")}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {graph?.nodes?.length ? <GraphScene graph={graph} /> : null}
+        {collections.length ? <CollectionScene collections={collections} /> : null}
+        {callStack.length ? <CallStackScene frames={callStack} /> : null}
+        {!graph?.nodes?.length && !collections.length && !callStack.length ? (
+          <pre className="rounded-xl border border-[#1f2937] bg-[#0f172a] p-4 text-xs text-[#94a3b8] overflow-auto">
+            {JSON.stringify(step.state, null, 2)}
+          </pre>
+        ) : null}
+      </div>
+
+      <aside className="rounded-2xl border border-[#1f2937] bg-[#111827] p-5 space-y-5">
+        <div>
+          <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Narration</div>
+          <p className="text-sm leading-6 text-[#e5e7eb]">{step.narration || "Follow the state transition for this step."}</p>
+        </div>
+
+        {focus.length ? (
+          <div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Focus</div>
+            <div className="flex flex-wrap gap-2">
+              {focus.map((item, index) => (
+                <span key={`${item}-${index}`} className="px-3 py-2 rounded-xl bg-[#22c55e]/10 text-[#86efac] text-xs">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {notes.length ? (
+          <div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Notes</div>
+            <div className="space-y-2">
+              {notes.map((note, index) => (
+                <div key={`${note}-${index}`} className="rounded-xl border border-[#1f2937] bg-[#0f172a] px-3 py-3 text-sm text-[#cbd5e1]">
+                  {note}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </aside>
+    </div>
+  );
+}
+
+function CollectionScene({ collections }: { collections: VisualCollection[] }) {
+  return (
+    <div className="space-y-5">
+      {collections.map((collection, collectionIndex) => {
+        const items = Array.isArray(collection.items) ? collection.items : [];
+        const isGrid = collection.layout === "grid";
+        return (
+          <div key={`${collection.label ?? "collection"}-${collectionIndex}`}>
+            <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">{collection.label ?? "Collection"}</div>
+            <div className={isGrid ? "grid grid-cols-2 lg:grid-cols-4 gap-3" : "flex flex-wrap gap-3"}>
+              {items.map((item, itemIndex) => (
+                <motion.div
+                  key={`${item.label ?? "item"}-${itemIndex}`}
+                  layout
+                  className={`min-w-[72px] rounded-2xl border px-3 py-3 text-center ${itemClassName(item.status)}`}
+                >
+                  <div className="text-[10px] uppercase tracking-[0.2em] opacity-70">{item.label ?? itemIndex}</div>
+                  <div className="text-sm font-semibold mt-1">{String(item.value ?? "")}</div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function GraphScene({ graph }: { graph: { nodes?: VisualNode[]; edges?: VisualEdge[] } }) {
+  const nodes = Array.isArray(graph.nodes) ? graph.nodes : [];
+  const edges = Array.isArray(graph.edges) ? graph.edges : [];
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Graph State</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {nodes.map((node, index) => (
+            <div key={`${node.id ?? node.label ?? "node"}-${index}`} className={`rounded-2xl border p-4 text-center ${itemClassName(node.status)}`}>
+              <div className="text-xl font-semibold">{node.label ?? node.id ?? "?"}</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] opacity-70 mt-2">{node.status ?? "default"}</div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
-  );
-}
-
-function VisualizationCanvas({ detail, step }: { detail: VisualizationDetail; step: VisualizationDetail["steps"][number] }) {
-  switch (detail.algorithm) {
-    case "bubble-sort":
-      return <BubbleSortView state={step.state} />;
-    case "binary-search":
-      return <BinarySearchView state={step.state} />;
-    case "fibonacci-recursion":
-      return <FibonacciView state={step.state} />;
-    case "graph-traversal":
-      return <GraphView state={step.state} />;
-    default:
-      return <pre className="text-sm text-[#9ca3af]">{JSON.stringify(step.state, null, 2)}</pre>;
-  }
-}
-
-function BubbleSortView({ state }: { state: Record<string, unknown> }) {
-  const array = (state.array as number[] | undefined) ?? [];
-  const active = (state.active as number[] | undefined) ?? [];
-  return (
-    <div className="h-full flex items-end justify-center gap-3">
-      {array.map((value, index) => (
-        <motion.div
-          key={`${value}-${index}`}
-          animate={{
-            height: `${Math.max(18, (value / Math.max(...array, 1)) * 100)}%`,
-            backgroundColor: active.includes(index) ? "#22c55e" : "#374151",
-          }}
-          className="w-14 rounded-t-lg relative"
-        >
-          <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-[#9ca3af]">{value}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function BinarySearchView({ state }: { state: Record<string, unknown> }) {
-  const array = (state.array as number[] | undefined) ?? [];
-  const left = Number(state.left ?? -1);
-  const mid = Number(state.mid ?? -1);
-  const right = Number(state.right ?? -1);
-  const target = state.target;
-
-  return (
-    <div className="h-full flex flex-col items-center justify-center gap-8">
-      <div className="text-center">
-        <div className="text-sm text-[#9ca3af]">Target value</div>
-        <div className="text-2xl font-bold text-[#22c55e]">{String(target)}</div>
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        {array.map((value, index) => {
-          const isActive = index === mid;
-          const isBoundary = index === left || index === right;
-          return (
-            <motion.div
-              key={`${value}-${index}`}
-              animate={{
-                scale: isActive ? 1.12 : 1,
-                backgroundColor: isActive ? "#22c55e" : isBoundary ? "#3b82f6" : "#374151",
-              }}
-              className="w-16 h-16 rounded-lg flex flex-col items-center justify-center font-bold text-white"
-            >
-              <span>{value}</span>
-              <span className="text-[10px] font-normal uppercase opacity-80">
-                {index === left ? "L" : index === mid ? "M" : index === right ? "R" : ""}
+      {edges.length ? (
+        <div>
+          <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Connections</div>
+          <div className="flex flex-wrap gap-2">
+            {edges.map((edge, index) => (
+              <span key={`${edge.from ?? "?"}-${edge.to ?? "?"}-${index}`} className="px-3 py-2 rounded-xl bg-[#0f172a] border border-[#1f2937] text-xs text-[#cbd5e1]">
+                {edge.from} -&gt; {edge.to}
               </span>
-            </motion.div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function FibonacciView({ state }: { state: Record<string, unknown> }) {
-  const node = String(state.node ?? "fib(?)");
-  const children = (state.children as string[] | undefined) ?? [];
+function CallStackScene({ frames }: { frames: string[] }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-8">
-      <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#22c55e] to-[#3b82f6] flex items-center justify-center text-white font-bold text-lg">
-        {node}
-      </div>
-      <div className="flex items-center gap-6 flex-wrap justify-center">
-        {children.map((child) => (
-          <div key={child} className="w-24 h-24 rounded-full border border-[#3b82f6]/40 bg-[#1f2937] flex items-center justify-center text-sm text-[#e5e7eb]">
-            {child}
+    <div>
+      <div className="text-xs uppercase tracking-[0.2em] text-[#64748b] mb-2">Call Stack</div>
+      <div className="space-y-2">
+        {frames.map((frame, index) => (
+          <div key={`${frame}-${index}`} className="rounded-xl border border-[#1f2937] bg-[#0f172a] px-3 py-3 text-sm text-[#e5e7eb]">
+            {frame}
           </div>
         ))}
       </div>
@@ -289,30 +472,73 @@ function FibonacciView({ state }: { state: Record<string, unknown> }) {
   );
 }
 
-function GraphView({ state }: { state: Record<string, unknown> }) {
-  const visited = ((state.visited as number[] | undefined) ?? []).map((item) => Number(item));
-  const frontier = ((state.frontier as number[] | undefined) ?? []).map((item) => Number(item));
-  const nodes = [1, 2, 3, 4, 5];
+function ModeButton({
+  active,
+  label,
+  icon,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
-    <div className="h-full flex flex-col items-center justify-center gap-8">
-      <div className="flex gap-6 flex-wrap justify-center">
-        {nodes.map((node) => (
-          <motion.div
-            key={node}
-            animate={{
-              scale: frontier.includes(node) ? 1.08 : 1,
-              backgroundColor: visited.includes(node) ? "#22c55e" : frontier.includes(node) ? "#3b82f6" : "#374151",
-            }}
-            className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold"
-          >
-            {node}
-          </motion.div>
-        ))}
-      </div>
-      <div className="text-sm text-[#9ca3af] text-center">
-        <div>Visited: {visited.join(", ") || "None"}</div>
-        <div>Frontier: {frontier.join(", ") || "None"}</div>
-      </div>
+    <button
+      onClick={onClick}
+      className={`h-11 rounded-xl border flex items-center justify-center gap-2 text-sm transition-all ${
+        active ? "border-[#22c55e] bg-[#22c55e]/10 text-[#86efac]" : "border-[#1f2937] bg-[#111827] text-[#cbd5e1] hover:border-[#334155]"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function ControlButton({ onClick, icon, disabled }: { onClick: () => void; icon: React.ReactNode; disabled?: boolean }) {
+  return (
+    <motion.button
+      whileHover={{ scale: disabled ? 1 : 1.04 }}
+      whileTap={{ scale: disabled ? 1 : 0.96 }}
+      onClick={onClick}
+      disabled={disabled}
+      className="w-10 h-10 rounded-xl bg-[#1f2937] hover:bg-[#374151] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+    >
+      {icon}
+    </motion.button>
+  );
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return <span className="px-3 py-1 rounded-full bg-[#111827] border border-[#1f2937] text-[#cbd5e1]">{children}</span>;
+}
+
+function PanelMessage({ children, tone = "default" }: { children: React.ReactNode; tone?: "default" | "error" }) {
+  return (
+    <div className={`max-w-5xl mx-auto rounded-2xl border p-6 text-sm ${tone === "error" ? "border-[#ef4444]/40 bg-[#7f1d1d]/20 text-[#fecaca]" : "border-[#1f2937] bg-[#111827] text-[#94a3b8]"}`}>
+      {children}
     </div>
   );
+}
+
+function itemClassName(status?: string) {
+  switch ((status ?? "").toLowerCase()) {
+    case "active":
+      return "border-[#22c55e]/50 bg-[#22c55e]/10 text-[#86efac]";
+    case "sorted":
+    case "done":
+    case "visited":
+      return "border-[#3b82f6]/50 bg-[#3b82f6]/10 text-[#bfdbfe]";
+    case "pivot":
+    case "frontier":
+      return "border-[#f59e0b]/50 bg-[#f59e0b]/10 text-[#fde68a]";
+    case "boundary":
+    case "candidate":
+      return "border-[#a855f7]/40 bg-[#a855f7]/10 text-[#e9d5ff]";
+    case "dimmed":
+      return "border-[#1f2937] bg-[#020617] text-[#64748b]";
+    default:
+      return "border-[#1f2937] bg-[#0f172a] text-[#e5e7eb]";
+  }
 }

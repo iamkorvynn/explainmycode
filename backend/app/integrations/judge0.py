@@ -19,11 +19,24 @@ class Judge0Client:
     provider_name = "judge0"
 
     def run_code(self, source_code: str, language: str, stdin: str | None = None) -> dict:
-        if settings.judge0_base_url:
-            return self._run_remote(source_code, language, stdin)
-        return self._run_mock(source_code, language)
+        live_result = self.run_live_code(source_code, language, stdin)
+        if live_result:
+            return live_result
+        return self.run_mock(source_code, language)
 
-    def _run_remote(self, source_code: str, language: str, stdin: str | None = None) -> dict:
+    @property
+    def is_configured(self) -> bool:
+        return bool(settings.judge0_base_url)
+
+    def run_live_code(self, source_code: str, language: str, stdin: str | None = None) -> dict | None:
+        if not self.is_configured:
+            return None
+        return self._run_remote(source_code, language, stdin)
+
+    def run_mock(self, source_code: str, language: str, reason: str | None = None) -> dict:
+        return self._run_mock(source_code, language, reason)
+
+    def _run_remote(self, source_code: str, language: str, stdin: str | None = None) -> dict | None:
         language_id = LANGUAGE_IDS.get(language.lower(), 71)
         headers = self._auth_headers()
         try:
@@ -45,11 +58,10 @@ class Judge0Client:
                     "provider_job_id": str(payload.get("token")) if payload.get("token") else None,
                     "provider": self.provider_name,
                 }
-        except httpx.HTTPStatusError as exc:
-            status_code = exc.response.status_code
-            return self._run_mock(source_code, language, f"Judge0 request failed with status {status_code}.")
+        except httpx.HTTPStatusError:
+            return None
         except httpx.HTTPError:
-            return self._run_mock(source_code, language, "Judge0 request failed because the remote service is unavailable.")
+            return None
 
     def _auth_headers(self) -> dict[str, str]:
         if not settings.judge0_api_key:

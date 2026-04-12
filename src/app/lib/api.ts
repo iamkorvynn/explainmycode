@@ -125,15 +125,20 @@ export interface VisualizationSummary {
   id: string;
   title: string;
   description: string;
+  category: string;
 }
 
 export interface VisualizationDetail {
   algorithm: string;
   title: string;
   description: string;
+  visualization_type: string;
+  source: string;
+  provider: string;
   steps: Array<{
     index: number;
     label: string;
+    narration: string;
     state: Record<string, unknown>;
   }>;
 }
@@ -653,6 +658,23 @@ export async function listVisualizations() {
 
 export async function getVisualization(algorithmId: string) {
   return apiRequest<VisualizationDetail>(`/visualizations/${algorithmId}`);
+}
+
+export async function generateVisualization(payload: {
+  code?: string;
+  language: string;
+  algorithmName?: string;
+  prompt?: string;
+}) {
+  return apiRequest<VisualizationDetail>("/visualizations/generate", {
+    method: "POST",
+    body: {
+      code: payload.code,
+      language: payload.language,
+      algorithm_name: payload.algorithmName,
+      prompt: payload.prompt,
+    },
+  });
 }
 
 export function getApiBaseUrl() {

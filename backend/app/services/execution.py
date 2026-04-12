@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.integrations.compiler_io import CompilerIOClient
 from app.integrations.judge0 import Judge0Client
 from app.integrations.onecompiler import OneCompilerClient
@@ -16,11 +17,23 @@ class CodeExecutionService:
         self.judge0 = Judge0Client()
 
     def run_code(self, user: User, source_code: str, language: str, stdin: str | None = None, workspace_id: str | None = None):
-        provider_result = self.onecompiler.run_code(source_code=source_code, language=language, stdin=stdin)
+        provider_result = None
+        for provider in settings.execution_provider_order:
+            if provider == "judge0":
+                if not self.judge0.is_configured:
+                    continue
+                provider_result = self.judge0.run_live_code(source_code=source_code, language=language, stdin=stdin)
+            elif provider == "onecompiler":
+                provider_result = self.onecompiler.run_code(source_code=source_code, language=language, stdin=stdin)
+            elif provider == "compiler-io":
+                provider_result = self.compiler_io.run_code(source_code=source_code, language=language, stdin=stdin)
+
+            if provider_result:
+                break
+
         if not provider_result:
-            provider_result = self.compiler_io.run_code(source_code=source_code, language=language, stdin=stdin)
-        if not provider_result:
-            provider_result = self.judge0.run_code(source_code=source_code, language=language, stdin=stdin)
+            provider_result = self.judge0.run_mock(source_code=source_code, language=language)
+
         execution = self.repo.create(
             user_id=user.id,
             workspace_id=workspace_id,

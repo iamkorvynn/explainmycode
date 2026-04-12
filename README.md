@@ -87,6 +87,17 @@ The demo account is intended for local development only. Production envs should 
 
 The detailed deploy checklist, required third-party services, and post-deploy verification steps are in [DEPLOYMENT.md](DEPLOYMENT.md).
 
+## Production Target
+
+The recommended production path is:
+
+- frontend on Vercel
+- backend API on Render
+- managed Render Postgres
+- managed Render Key Value for shared rate limiting
+
+The checked-in [render.yaml](render.yaml) now provisions the API, Postgres, and Key Value together. The backend production template also keeps Judge0 first in the execution provider order while leaving OneCompiler and Compiler.io disabled unless you intentionally re-enable them.
+
 ## OAuth Providers
 
 Google and GitHub OAuth are now supported. They stay hidden in the UI until you set the related backend env values:
@@ -109,3 +120,10 @@ If you deploy the frontend on Vercel:
 - set the Vercel environment variable `VITE_API_BASE_URL` to your backend API URL, for example `https://your-backend-domain.com/api/v1`
 
 This repo now includes [vercel.json](vercel.json) so React Router paths like `/oauth/callback`, `/reset-password`, `/ide`, and `/analysis` rewrite correctly to the SPA entrypoint.
+
+## CI
+
+GitHub Actions CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml). It runs the same release gates used in deployment prep:
+
+- `npm run build`
+- `python -m pytest tests -q` in `backend`

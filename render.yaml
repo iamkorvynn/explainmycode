@@ -15,6 +15,11 @@ services:
         fromDatabase:
           name: explainmycode-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: explainmycode-cache
+          property: connectionString
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "30"
       - key: REFRESH_TOKEN_EXPIRE_DAYS
@@ -29,18 +34,22 @@ services:
         sync: false
       - key: BACKEND_BASE_URL
         sync: false
-      - key: REDIS_URL
-        value: ""
       - key: RUN_DB_MIGRATIONS
         value: "true"
       - key: SEED_DEMO_DATA
         value: "false"
       - key: LLM_MODE
-        value: mock
+        value: live
       - key: GROQ_API_KEY
         sync: false
       - key: CLAUDE_API_KEY
         sync: false
+      - key: EXECUTION_PROVIDER_ORDER
+        value: judge0,onecompiler,compiler-io
+      - key: ONECOMPILER_API_KEY
+        value: ""
+      - key: COMPILER_IO_API_KEY
+        value: ""
       - key: JUDGE0_BASE_URL
         sync: false
       - key: JUDGE0_API_KEY
@@ -67,6 +76,9 @@ services:
         sync: false
       - key: GITHUB_CLIENT_SECRET
         sync: false
+  - type: keyvalue
+    name: explainmycode-cache
+    ipAllowList: []
 
 databases:
   - name: explainmycode-db
