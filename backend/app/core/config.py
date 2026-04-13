@@ -62,6 +62,18 @@ class Settings(BaseSettings):
     def normalize_environment(cls, value: str) -> str:
         return value.lower().strip()
 
+    @field_validator("llm_mode", mode="before")
+    @classmethod
+    def normalize_llm_mode(cls, value: str) -> str:
+        return value.lower().strip()
+
+    @field_validator("llm_mode")
+    @classmethod
+    def validate_llm_mode(cls, value: str) -> str:
+        if value not in {"mock", "live"}:
+            raise ValueError("LLM_MODE must be either 'mock' or 'live'.")
+        return value
+
     @field_validator("execution_provider_order", mode="before")
     @classmethod
     def parse_execution_provider_order(cls, value: str | list[str]) -> list[str]:
@@ -98,6 +110,8 @@ class Settings(BaseSettings):
                 raise ValueError("SQLite is not supported for production deployments. Use PostgreSQL.")
             if self.seed_demo_data:
                 raise ValueError("SEED_DEMO_DATA must be false in production.")
+            if self.llm_mode != "live":
+                raise ValueError("LLM_MODE must be live in production.")
         return self
 
     @property
@@ -111,6 +125,50 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def allow_mock_fallbacks(self) -> bool:
+        return not self.is_production
+
+    @property
+    def groq_configured(self) -> bool:
+        return bool(self.groq_api_key.strip())
+
+    @property
+    def claude_configured(self) -> bool:
+        return bool(self.claude_api_key.strip())
+
+    @property
+    def any_llm_provider_configured(self) -> bool:
+        return self.groq_configured or self.claude_configured
+
+    @property
+    def judge0_configured(self) -> bool:
+        return bool(self.judge0_base_url.strip())
+
+    @property
+    def onecompiler_configured(self) -> bool:
+        return bool(self.onecompiler_api_key.strip())
+
+    @property
+    def compiler_io_configured(self) -> bool:
+        return bool(self.compiler_io_api_key.strip())
+
+    @property
+    def any_execution_provider_configured(self) -> bool:
+        return self.judge0_configured or self.onecompiler_configured or self.compiler_io_configured
+
+    @property
+    def smtp_configured(self) -> bool:
+        return bool(self.smtp_host.strip())
+
+    @property
+    def google_oauth_configured(self) -> bool:
+        return bool(self.google_client_id.strip() and self.google_client_secret.strip())
+
+    @property
+    def github_oauth_configured(self) -> bool:
+        return bool(self.github_client_id.strip() and self.github_client_secret.strip())
 
 
 @lru_cache

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.exceptions import AppException
 from app.integrations.compiler_io import CompilerIOClient
 from app.integrations.judge0 import Judge0Client
 from app.integrations.onecompiler import OneCompilerClient
@@ -32,7 +33,14 @@ class CodeExecutionService:
                 break
 
         if not provider_result:
-            provider_result = self.judge0.run_mock(source_code=source_code, language=language)
+            if settings.allow_mock_fallbacks:
+                provider_result = self.judge0.run_mock(source_code=source_code, language=language)
+            else:
+                raise AppException(
+                    "No live code execution provider is configured or reachable. Add Judge0, OneCompiler, or Compiler.io credentials.",
+                    status_code=503,
+                    code="execution_provider_unavailable",
+                )
 
         execution = self.repo.create(
             user_id=user.id,

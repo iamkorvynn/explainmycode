@@ -6,7 +6,7 @@ FastAPI backend for the ExplainMyCode frontend.
 
 - JWT auth with signup, login, refresh, logout, forgot/reset password
 - persisted workspaces and file tree
-- code execution abstraction with OneCompiler, Compiler.io, Judge0, and local mock fallback
+- code execution abstraction with OneCompiler, Compiler.io, and Judge0
 - AI mentor endpoints for comments, summary, explanation, bugs, assumptions, on-track status, and mentor chat
 - analysis dashboard payload generation
 - visualization trace endpoints
@@ -53,7 +53,7 @@ The API will be available at [http://localhost:8000/docs](http://localhost:8000/
 - `SECRET_KEY`
 - `FRONTEND_BASE_URL`
 - `BACKEND_BASE_URL`
-- `LLM_MODE=mock|live`
+- `LLM_MODE=mock|live` where production must use `live`
 - `GROQ_API_KEY`
 - `CLAUDE_API_KEY`
 - `GOOGLE_CLIENT_ID`
@@ -70,6 +70,12 @@ The API will be available at [http://localhost:8000/docs](http://localhost:8000/
 - `SMTP_PORT`
 - `SMTP_USER`
 - `SMTP_PASSWORD`
+
+## Production Notes
+
+- Production no longer falls back to mock AI or mock code execution.
+- Production password reset requires real SMTP configuration.
+- Before launch, configure at least one live AI provider and at least one live execution provider.
 
 ## Local Frontend Integration
 

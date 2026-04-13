@@ -1,12 +1,15 @@
+from uuid import uuid4
+
 from app.core.config import settings
 
 
 def signup_and_login(client):
+    identifier = uuid4().hex[:8]
     response = client.post(
         "/api/v1/auth/signup",
         json={
-            "username": "provider-user",
-            "email": "provider-user@example.com",
+            "username": f"provider-user-{identifier}",
+            "email": f"provider-user-{identifier}@example.com",
             "password": "strongpass123",
             "confirm_password": "strongpass123",
         },
@@ -97,3 +100,21 @@ def test_execution_falls_back_to_next_live_provider_before_mock(client, monkeypa
     body = response.json()
     assert body["provider"] == "onecompiler"
     assert body["stdout"] == "fallback from onecompiler\n"
+
+
+def test_execution_requires_live_provider_in_production(client, monkeypatch):
+    payload = signup_and_login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "judge0_base_url", "")
+    monkeypatch.setattr(settings, "onecompiler_api_key", "")
+    monkeypatch.setattr(settings, "compiler_io_api_key", "")
+
+    response = client.post(
+        "/api/v1/execution/run",
+        json={"source_code": 'print("hello")', "language": "python"},
+        headers=headers,
+    )
+    assert response.status_code == 503
+    assert response.json()["code"] == "execution_provider_unavailable"

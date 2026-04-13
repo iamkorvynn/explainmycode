@@ -1,12 +1,15 @@
+from uuid import uuid4
+
 from app.core.config import settings
 
 
 def signup_and_login(client):
+    identifier = uuid4().hex[:8]
     response = client.post(
         "/api/v1/auth/signup",
         json={
-            "username": "alice",
-            "email": "alice@example.com",
+            "username": f"alice_{identifier}",
+            "email": f"alice_{identifier}@example.com",
             "password": "strongpass123",
             "confirm_password": "strongpass123",
         },
@@ -19,6 +22,7 @@ def test_health(client):
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert response.json()["database"] == "ok"
 
 
 def test_auth_me_flow(client):
@@ -28,7 +32,7 @@ def test_auth_me_flow(client):
         headers={"Authorization": f"Bearer {payload['access_token']}"},
     )
     assert me.status_code == 200
-    assert me.json()["username"] == "alice"
+    assert me.json()["username"] == payload["user"]["username"]
 
 
 def test_forgot_and_reset_password_flow(client, monkeypatch):
@@ -40,14 +44,14 @@ def test_forgot_and_reset_password_flow(client, monkeypatch):
 
     monkeypatch.setattr("app.integrations.email.EmailClient.send_password_reset", capture_reset_token)
 
-    signup_and_login(client)
+    payload = signup_and_login(client)
 
     forgot = client.post(
         "/api/v1/auth/forgot-password",
-        json={"email": "alice@example.com"},
+        json={"email": payload["user"]["email"]},
     )
     assert forgot.status_code == 200
-    assert captured["recipient"] == "alice@example.com"
+    assert captured["recipient"] == payload["user"]["email"]
 
     reset = client.post(
         "/api/v1/auth/reset-password",
@@ -62,7 +66,7 @@ def test_forgot_and_reset_password_flow(client, monkeypatch):
     login = client.post(
         "/api/v1/auth/login",
         json={
-            "username": "alice",
+            "username": payload["user"]["username"],
             "password": "newstrongpass123",
             "remember_me": True,
         },
@@ -393,3 +397,35 @@ def test_live_ai_routes_use_provider_payloads(client, monkeypatch):
     assert visualization.status_code == 200
     assert visualization.json()["provider"] == "claude"
     assert visualization.json()["steps"][0]["label"] == "Pick the midpoint"
+
+
+def test_live_ai_requires_configured_provider_in_production(client, monkeypatch):
+    payload = signup_and_login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "llm_mode", "live")
+    monkeypatch.setattr(settings, "groq_api_key", "")
+    monkeypatch.setattr(settings, "claude_api_key", "")
+
+    response = client.post(
+        "/api/v1/mentor/summary",
+        json={"code": "print('hello')", "language": "python"},
+        headers=headers,
+    )
+    assert response.status_code == 503
+    assert response.json()["code"] == "live_ai_unavailable"
+
+
+def test_forgot_password_requires_smtp_in_production(client, monkeypatch):
+    payload = signup_and_login(client)
+
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "smtp_host", "")
+
+    response = client.post(
+        "/api/v1/auth/forgot-password",
+        json={"email": payload["user"]["email"]},
+    )
+    assert response.status_code == 503
+    assert response.json()["code"] == "email_service_unavailable"

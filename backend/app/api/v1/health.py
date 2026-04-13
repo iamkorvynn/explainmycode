@@ -18,6 +18,21 @@ def health_check() -> dict:
         "llm_mode": settings.llm_mode,
         "database": "ok" if db_ok else "unavailable",
         "redis": "ok" if redis_available() else "unavailable",
+        "ai": {
+            "mode": settings.llm_mode,
+            "groq": "configured" if settings.groq_configured else "unconfigured",
+            "claude": "configured" if settings.claude_configured else "unconfigured",
+        },
+        "execution": {
+            "judge0": "configured" if settings.judge0_configured else "unconfigured",
+            "onecompiler": "configured" if settings.onecompiler_configured else "unconfigured",
+            "compiler_io": "configured" if settings.compiler_io_configured else "unconfigured",
+        },
+        "email": "configured" if settings.smtp_configured else "unconfigured",
+        "oauth": {
+            "google": "configured" if settings.google_oauth_configured else "unconfigured",
+            "github": "configured" if settings.github_oauth_configured else "unconfigured",
+        },
     }
 
 

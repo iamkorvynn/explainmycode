@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.core.config import settings
+from app.core.exceptions import AppException
 from app.prompts.dashboard import DASHBOARD_ANALYSIS_PROMPT, build_dashboard_prompt
 from app.schemas.analysis import DashboardResponse
 from app.services.analysis_utils import (
@@ -45,8 +47,11 @@ class DashboardAnalysisService:
             detected_algorithms=algorithms,
             complexity={"time": time_complexity, "space": space_complexity, "metrics": metrics},
             suggestions=suggestions(code),
-            provider="mock",
+            provider="builtin",
         )
+
+        if not settings.allow_mock_fallbacks:
+            self.live_llm.ensure_live_support()
 
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
@@ -54,7 +59,13 @@ class DashboardAnalysisService:
             user_prompt=build_dashboard_prompt(resolved_language, code, base_response.model_dump()),
         )
         if not payload:
-            return base_response
+            if settings.allow_mock_fallbacks:
+                return base_response
+            raise AppException(
+                "Live AI dashboard analysis is unavailable. Check your provider credentials and model access.",
+                status_code=503,
+                code="live_ai_provider_unavailable",
+            )
 
         summary = self._sanitize_summary(payload.get("summary"), base_response.summary.model_dump())
         detected = self._sanitize_algorithms(

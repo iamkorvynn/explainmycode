@@ -42,5 +42,5 @@ class VisualizationDetail(APIModel):
     description: str
     visualization_type: str = "generic"
     source: str = "template"
-    provider: str = "mock"
+    provider: str = "builtin"
     steps: list[VisualizationStep] = Field(default_factory=list)

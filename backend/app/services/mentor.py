@@ -4,6 +4,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
+from app.core.exceptions import AppException
 from app.prompts.mentor import (
     DEEP_ANALYSIS_PROMPT,
     FAST_ANALYSIS_PROMPT,
@@ -47,6 +49,7 @@ class MentorAnalysisService:
     def live_comments(self, code: str, language: str) -> LiveCommentsResponse:
         resolved_language = detect_language(code, language)
         fallback_comments = generate_live_comments(code)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="groq",
             system_prompt=FAST_ANALYSIS_PROMPT,
@@ -56,21 +59,26 @@ class MentorAnalysisService:
             comments = self._sanitize_comments(payload.get("comments"), len(code.splitlines()))
             if comments:
                 return LiveCommentsResponse(comments=comments, provider=provider)
-        return LiveCommentsResponse(comments=fallback_comments, provider="mock")
+        if settings.allow_mock_fallbacks:
+            return LiveCommentsResponse(comments=fallback_comments, provider="builtin")
+        self._raise_live_ai_failed("live comments")
 
     def summary(self, code: str, language: str) -> SummaryResponse:
         resolved_language = detect_language(code, language)
         fallback_summary = summarize_code(code, resolved_language)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=DEEP_ANALYSIS_PROMPT,
             user_prompt=build_summary_prompt(resolved_language, code, fallback_summary),
         )
         if payload:
-            summary = self._string_or_default(payload.get("summary"), fallback_summary)
+            summary = self._string_or_default(payload.get("summary"), "")
             if summary:
                 return SummaryResponse(summary=summary, provider=provider)
-        return SummaryResponse(summary=fallback_summary, provider="mock")
+        if settings.allow_mock_fallbacks:
+            return SummaryResponse(summary=fallback_summary, provider="builtin")
+        self._raise_live_ai_failed("summary")
 
     def explanation(self, code: str, language: str) -> ExplanationResponse:
         resolved_language = detect_language(code, language)
@@ -80,6 +88,7 @@ class MentorAnalysisService:
             f"{fallback_summary} The code is organized into {len(fallback_sections) or 1} major section(s) "
             "with setup, control flow, and output steps."
         )
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=DEEP_ANALYSIS_PROMPT,
@@ -91,18 +100,22 @@ class MentorAnalysisService:
             ),
         )
         if payload:
-            sections = self._sanitize_sections(payload.get("sections"), len(code.splitlines())) or fallback_sections
-            full_explanation = self._string_or_default(payload.get("full_explanation"), fallback_full_explanation)
-            return ExplanationResponse(sections=sections, full_explanation=full_explanation, provider=provider)
-        return ExplanationResponse(
-            sections=fallback_sections,
-            full_explanation=fallback_full_explanation,
-            provider="mock",
-        )
+            sections = self._sanitize_sections(payload.get("sections"), len(code.splitlines()))
+            full_explanation = self._string_or_default(payload.get("full_explanation"), "")
+            if sections and full_explanation:
+                return ExplanationResponse(sections=sections, full_explanation=full_explanation, provider=provider)
+        if settings.allow_mock_fallbacks:
+            return ExplanationResponse(
+                sections=fallback_sections,
+                full_explanation=fallback_full_explanation,
+                provider="builtin",
+            )
+        self._raise_live_ai_failed("explanation")
 
     def line_explanation(self, code: str, language: str, line_number: int) -> LineExplanationResponse:
         resolved_language = detect_language(code, language)
         fallback_result = explain_line(code, line_number)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="groq",
             system_prompt=FAST_ANALYSIS_PROMPT,
@@ -114,19 +127,23 @@ class MentorAnalysisService:
             ),
         )
         if payload:
-            explanation = self._string_or_default(payload.get("explanation"), fallback_result["explanation"])
+            explanation = self._string_or_default(payload.get("explanation"), "")
             related_lines = self._sanitize_line_numbers(payload.get("related_lines"), len(code.splitlines()))
-            return LineExplanationResponse(
-                line_number=line_number,
-                explanation=explanation,
-                related_lines=related_lines or fallback_result["related_lines"],
-                provider=provider,
-            )
-        return LineExplanationResponse(**fallback_result, provider="mock")
+            if explanation:
+                return LineExplanationResponse(
+                    line_number=line_number,
+                    explanation=explanation,
+                    related_lines=related_lines or fallback_result["related_lines"],
+                    provider=provider,
+                )
+        if settings.allow_mock_fallbacks:
+            return LineExplanationResponse(**fallback_result, provider="builtin")
+        self._raise_live_ai_failed("line explanation")
 
     def bugs(self, code: str, language: str) -> BugsResponse:
         resolved_language = detect_language(code, language)
         fallback_bugs = detect_bugs(code)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=DEEP_ANALYSIS_PROMPT,
@@ -135,11 +152,14 @@ class MentorAnalysisService:
         if payload:
             bugs = self._sanitize_bugs(payload.get("bugs"), len(code.splitlines()))
             return BugsResponse(bugs=bugs, provider=provider)
-        return BugsResponse(bugs=fallback_bugs, provider="mock")
+        if settings.allow_mock_fallbacks:
+            return BugsResponse(bugs=fallback_bugs, provider="builtin")
+        self._raise_live_ai_failed("bug analysis")
 
     def assumptions(self, code: str, language: str) -> AssumptionsResponse:
         resolved_language = detect_language(code, language)
         fallback_assumptions = detect_assumptions(code)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=DEEP_ANALYSIS_PROMPT,
@@ -149,29 +169,42 @@ class MentorAnalysisService:
             assumptions = self._sanitize_assumptions(payload.get("assumptions"))
             if assumptions:
                 return AssumptionsResponse(assumptions=assumptions, provider=provider)
-        return AssumptionsResponse(assumptions=fallback_assumptions, provider="mock")
+        if settings.allow_mock_fallbacks:
+            return AssumptionsResponse(assumptions=fallback_assumptions, provider="builtin")
+        self._raise_live_ai_failed("assumption analysis")
 
     def on_track(self, code: str, language: str) -> OnTrackResponse:
         resolved_language = detect_language(code, language)
         fallback_status = on_track_status(code, resolved_language)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="groq",
             system_prompt=FAST_ANALYSIS_PROMPT,
             user_prompt=build_on_track_prompt(resolved_language, code, fallback_status),
         )
         if payload:
-            status = {
-                **fallback_status,
-                "type": self._enum_or_default(payload.get("type"), {"idle", "success", "warning", "error"}, fallback_status["type"]),
-                "message": self._string_or_default(payload.get("message"), fallback_status["message"]),
-                "details": self._string_or_default(payload.get("details"), fallback_status["details"]),
-            }
-            return OnTrackResponse(**status, provider=provider)
-        return OnTrackResponse(**fallback_status, provider="mock")
+            status_type = self._enum_or_default(payload.get("type"), {"idle", "success", "warning", "error"}, "")
+            message = self._string_or_default(payload.get("message"), "")
+            details = self._string_or_default(payload.get("details"), "")
+            if status_type and message and details:
+                return OnTrackResponse(
+                    type=status_type,
+                    message=message,
+                    details=details,
+                    language=fallback_status["language"],
+                    line_count=fallback_status["line_count"],
+                    warning_count=fallback_status["warning_count"],
+                    error_count=fallback_status["error_count"],
+                    provider=provider,
+                )
+        if settings.allow_mock_fallbacks:
+            return OnTrackResponse(**fallback_status, provider="builtin")
+        self._raise_live_ai_failed("progress analysis")
 
     def chat(self, code: str, language: str, message: str, history: list[dict[str, Any]] | None = None) -> MentorChatResponse:
         resolved_language = detect_language(code, language)
         fallback_payload = mentor_chat_answer(code, resolved_language, message)
+        self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=DEEP_ANALYSIS_PROMPT,
@@ -184,16 +217,32 @@ class MentorAnalysisService:
             ),
         )
         if payload:
-            answer = self._string_or_default(payload.get("answer"), fallback_payload["answer"])
+            answer = self._string_or_default(payload.get("answer"), "")
             citations = self._sanitize_citations(payload.get("citations"), len(code.splitlines()))
             follow_ups = self._sanitize_follow_ups(payload.get("follow_ups")) or fallback_payload["follow_ups"]
-            return MentorChatResponse(
-                answer=answer,
-                citations=citations,
-                follow_ups=follow_ups,
-                provider=provider,
-            )
-        return MentorChatResponse(**fallback_payload, provider="mock")
+            if answer:
+                return MentorChatResponse(
+                    answer=answer,
+                    citations=citations,
+                    follow_ups=follow_ups,
+                    provider=provider,
+                )
+        if settings.allow_mock_fallbacks:
+            return MentorChatResponse(**fallback_payload, provider="builtin")
+        self._raise_live_ai_failed("mentor chat")
+
+    def _ensure_live_ai_available(self) -> None:
+        if settings.allow_mock_fallbacks:
+            return
+        self.live_llm.ensure_live_support()
+
+    @staticmethod
+    def _raise_live_ai_failed(feature_name: str) -> None:
+        raise AppException(
+            f"Live AI {feature_name} is unavailable. Check your provider credentials and model access.",
+            status_code=503,
+            code="live_ai_provider_unavailable",
+        )
 
     def _sanitize_comments(self, value: Any, line_count: int) -> list[dict[str, Any]]:
         if not isinstance(value, list):

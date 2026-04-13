@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from app.core.config import settings
+from app.core.exceptions import AppException
 from app.prompts.visualization import VISUALIZATION_GENERATION_PROMPT, build_visualization_prompt
 from app.schemas.visualization import VisualizationDetail, VisualizationStep, VisualizationSummary
 from app.services.analysis_utils import detect_language, detected_algorithms, split_sections, summarize_code
@@ -28,7 +30,7 @@ class VisualizationService:
         detail = self._template_map().get(algorithm_id)
         if not detail:
             raise KeyError(algorithm_id)
-        return detail.model_copy(update={"source": "template", "provider": "mock"})
+        return detail.model_copy(update={"source": "template", "provider": "builtin"})
 
     def generate_visualization(
         self,
@@ -40,13 +42,21 @@ class VisualizationService:
     ) -> VisualizationDetail:
         resolved_language = detect_language(code, language)
         fallback = self._generated_detail(code=code, language=resolved_language, algorithm_name=algorithm_name, prompt=prompt)
+        if not settings.allow_mock_fallbacks:
+            self.live_llm.ensure_live_support()
         payload, provider = self.live_llm.generate_json(
             preferred="claude",
             system_prompt=VISUALIZATION_GENERATION_PROMPT,
             user_prompt=build_visualization_prompt(resolved_language, code, algorithm_name, prompt, fallback.model_dump()),
         )
         if not payload:
-            return fallback
+            if settings.allow_mock_fallbacks:
+                return fallback
+            raise AppException(
+                "Live AI visualization generation is unavailable. Check your provider credentials and model access.",
+                status_code=503,
+                code="live_ai_provider_unavailable",
+            )
         detail = self._sanitize_generated_payload(payload, fallback)
         return detail.model_copy(update={"provider": provider, "source": "generated"})
 
@@ -57,7 +67,7 @@ class VisualizationService:
             return template.model_copy(
                 update={
                     "source": "generated",
-                    "provider": "mock",
+                    "provider": "builtin",
                     "description": self._generated_description(template.title, code, prompt, language),
                 }
             )
@@ -220,7 +230,7 @@ class VisualizationService:
 
     @staticmethod
     def _detail(algorithm: str, title: str, description: str, visualization_type: str, steps: list[VisualizationStep], *, source: str = "template") -> VisualizationDetail:
-        return VisualizationDetail(algorithm=algorithm, title=title, description=description, visualization_type=visualization_type, source=source, provider="mock", steps=steps)
+        return VisualizationDetail(algorithm=algorithm, title=title, description=description, visualization_type=visualization_type, source=source, provider="builtin", steps=steps)
 
     @staticmethod
     def _text(value: Any, default: str) -> str:

@@ -5,18 +5,29 @@ from email.message import EmailMessage
 from urllib.parse import quote_plus
 
 from app.core.config import settings
+from app.core.exceptions import AppException
 
 
 logger = logging.getLogger(__name__)
 
 
 class EmailClient:
+    @property
+    def is_configured(self) -> bool:
+        return settings.smtp_configured
+
     def send_password_reset(self, recipient: str, reset_token: str) -> None:
         reset_link = f"{settings.frontend_base_url.rstrip('/')}/reset-password?token={quote_plus(reset_token)}"
 
-        if not settings.smtp_host:
-            logger.info("SMTP not configured. Password reset link for %s: %s", recipient, reset_link)
-            return
+        if not self.is_configured:
+            if settings.allow_mock_fallbacks:
+                logger.info("SMTP not configured. Password reset link for %s: %s", recipient, reset_link)
+                return
+            raise AppException(
+                "Password reset email is unavailable. Configure SMTP to enable email delivery.",
+                status_code=503,
+                code="email_service_unavailable",
+            )
 
         message = EmailMessage()
         message["Subject"] = "Reset your ExplainMyCode password"

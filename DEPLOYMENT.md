@@ -38,6 +38,7 @@ It also pins these production behaviors:
 - `LLM_MODE=live`
 - `EXECUTION_PROVIDER_ORDER=judge0,onecompiler,compiler-io`
 - `ONECOMPILER_API_KEY` and `COMPILER_IO_API_KEY` set blank unless you intentionally re-enable them
+- production no longer falls back to mock AI, mock execution, or logged password-reset links
 
 ## Render Backend Setup
 
@@ -156,12 +157,12 @@ Example:
 
 Once those values are in `backend/.env` or `backend/.env.production`, the Google and GitHub buttons appear automatically on the login and signup screens.
 
-## Current Fallback Behavior
+## Production Provider Requirements
 
-If you do not configure external providers yet, the app still works, but with intentional fallbacks:
+Production now expects real services:
 
-- AI mentor: heuristic/mock responses for several analysis endpoints
-- code execution: mock Judge0 mode
-- password reset: link is logged when SMTP is not configured
+- AI mentor, dashboard, and generation features require `LLM_MODE=live` plus at least one live provider key such as `GROQ_API_KEY` or `CLAUDE_API_KEY`
+- code execution requires at least one live execution provider such as `JUDGE0_BASE_URL` or `ONECOMPILER_API_KEY`
+- password reset email requires SMTP configuration
 
-That makes the app deployable immediately, while still letting you switch each capability to a real provider by filling in env values.
+If those are missing, the affected routes return service-unavailable errors instead of mock output.

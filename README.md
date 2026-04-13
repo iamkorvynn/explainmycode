@@ -87,6 +87,7 @@ The demo account is intended for local development only. Production envs should 
 
 The detailed deploy checklist, required third-party services, and post-deploy verification steps are in [DEPLOYMENT.md](DEPLOYMENT.md).
 For the lower-friction hosted path using Railway + Supabase + Upstash, use [RAILWAY_SUPABASE_DEPLOYMENT.md](RAILWAY_SUPABASE_DEPLOYMENT.md).
+Production is now strict about live integrations: no mock AI, no mock execution, and no logged password-reset links in production.
 
 ## Production Target
 

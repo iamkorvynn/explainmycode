@@ -244,12 +244,26 @@ export function getCurrentWorkspaceState() {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
-  if (!response.ok) {
-    const detail = typeof data?.detail === "string" ? data.detail : response.statusText;
-    throw new ApiError(detail, response.status, data?.code);
+  let data: unknown = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = undefined;
+    }
   }
-  return data as T;
+
+  if (!response.ok) {
+    const errorPayload = data as { detail?: unknown; code?: unknown } | undefined;
+    const detail =
+      typeof errorPayload?.detail === "string"
+        ? errorPayload.detail
+        : text.trim() || response.statusText || "Request failed";
+    const code = typeof errorPayload?.code === "string" ? errorPayload.code : undefined;
+    throw new ApiError(detail, response.status, code);
+  }
+  return (data ?? {}) as T;
 }
 
 async function rawRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -266,13 +280,24 @@ async function rawRequest<T>(path: string, options: RequestOptions = {}): Promis
     }
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    });
 
-  return parseResponse<T>(response);
+    return parseResponse<T>(response);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(
+      "Unable to reach the server. Check your internet connection and deployment settings.",
+      0,
+      "network_error",
+    );
+  }
 }
 
 async function refreshSession(): Promise<SessionPayload | null> {

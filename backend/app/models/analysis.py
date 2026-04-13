@@ -15,6 +15,6 @@ class AnalysisResult(TimestampMixin, Base):
     analysis_type: Mapped[str] = mapped_column(String(50), index=True)
     code_hash: Mapped[str] = mapped_column(String(64), index=True)
     language: Mapped[str] = mapped_column(String(50))
-    provider: Mapped[str] = mapped_column(String(50), default="mock")
+    provider: Mapped[str] = mapped_column(String(50), default="builtin")
     payload: Mapped[dict] = mapped_column(JSON)
     raw_text: Mapped[str | None] = mapped_column(Text, nullable=True)

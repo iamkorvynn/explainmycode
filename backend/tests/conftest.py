@@ -8,12 +8,14 @@ from sqlalchemy.orm import sessionmaker
 import app.models  # noqa: F401
 from app.api.deps import get_db
 from app.core.config import settings
+from app.core.rate_limit import _buckets
 from app.main import create_app
 from app.models.base import Base
 
 
 @pytest.fixture()
 def client(tmp_path: Path):
+    settings.environment = "development"
     settings.seed_demo_data = False
     settings.llm_mode = "mock"
     settings.groq_api_key = ""
@@ -25,6 +27,7 @@ def client(tmp_path: Path):
     settings.compiler_io_base_url = "https://api.onlinecompiler.io/api/run-code-sync/"
     settings.judge0_base_url = ""
     settings.judge0_api_key = ""
+    _buckets.clear()
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False}, future=True)
     TestingSessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)

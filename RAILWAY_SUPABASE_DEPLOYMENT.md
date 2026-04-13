@@ -11,7 +11,7 @@ Important defaults:
 
 - Supabase is used as Postgres only in this pass.
 - The existing FastAPI auth system stays in place.
-- `LLM_MODE=mock` is the safest first deploy unless you already have live provider keys.
+- Production should run with `LLM_MODE=live` and real provider keys before launch.
 
 ## Files To Use
 
@@ -39,11 +39,13 @@ Project-specific values already filled in:
 - Supabase user: `postgres.mtbuxmmhdvqkygkldvhu`
 - Upstash REST reference values are stored in the file for convenience
 
-Recommended first-deploy defaults:
+Recommended production defaults:
 
-- Keep `LLM_MODE=mock`
-- Leave execution provider keys blank until you explicitly enable them
-- Leave SMTP and OAuth variables blank until you explicitly enable them
+- Keep `LLM_MODE=live`
+- Add at least one real AI provider key before launch
+- Add at least one real execution provider before launch
+- Add SMTP before enabling password-reset email in production
+- Leave OAuth variables blank until you explicitly enable them
 
 ## Step-By-Step Deployment
 
@@ -93,14 +95,15 @@ Run this against the live Vercel URL:
 2. Open the IDE.
 3. Create a workspace or file.
 4. Refresh and confirm the file tree persists.
-5. Run code and confirm the app responds, even if execution falls back to mock mode.
-6. Open mentor, dashboard, and visualization pages.
-7. If SMTP is configured, test password reset.
+5. Run code and confirm a live execution provider responds.
+6. Open mentor, dashboard, and visualization pages and confirm live providers respond.
+7. Test password reset only after SMTP is configured.
 8. If OAuth is configured, test both callback flows.
 
 ## Notes
 
 - The current backend already uses `psycopg`, so `postgresql+psycopg://` is the correct SQLAlchemy URL scheme.
+- Production no longer falls back to mock AI, mock execution, or logged password-reset links.
 - Upstash `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are for the REST API. This backend uses `redis-py`, so it needs the Redis client connection details instead.
 - The backend already exposes the readiness endpoint used by Railway:
   - `/api/v1/health/ready`
