@@ -1,131 +1,276 @@
 # ExplainMyCode
 
-ExplainMyCode is a full-stack coding workspace with authentication, persistent workspaces, code execution, AI explanations, dashboard analysis, and algorithm visualization.
+A full-stack coding workspace platform with AI-powered code explanations, real-time execution, and intelligent analysis. Built with TypeScript/React frontend and Python/FastAPI backend.
 
-## Local Development
+## 🌟 Features
 
-1. Install frontend dependencies:
+- **Authentication & User Management**
+  - JWT-based authentication with signup, login, and OAuth (Google, GitHub)
+  - Password reset flow with email verification
+  - Persistent user accounts with profile management
 
-```bash
-npm install
+- **Coding Workspace**
+  - Multi-file workspace editor with syntax highlighting
+  - Real-time code editing with Monaco Editor
+  - Persistent workspace storage with version control
+  - File tree navigation and organization
+
+- **Code Execution**
+  - Multi-language code execution (Python, JavaScript, TypeScript, Java, C++, Go, and more)
+  - Multiple execution backends: Judge0, Compiler.io, OneCompiler
+  - Live output and error handling
+  - Execution time and resource tracking
+
+- **AI-Powered Analysis**
+  - Code explanations and documentation generation
+  - Bug detection and suggestions
+  - Performance analysis and optimization recommendations
+  - Mentor chat for interactive code discussions
+  - Comment generation and code summarization
+
+- **Dashboard & Analytics**
+  - Code execution analytics and performance metrics
+  - Workspace statistics and insights
+  - Algorithm visualization and trace analysis
+  - Progress tracking
+
+## 🏗️ Architecture
+
+```
+explainmycode/
+├── frontend/          # React + TypeScript (63.2%)
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.ts
+├── backend/           # Python + FastAPI (35.4%)
+│   ├── app/
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── alembic/
+├── docker-compose.yml
+└── render.yaml
 ```
 
-2. Install backend dependencies:
+**Stack:**
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Radix UI, React Router
+- **Backend**: FastAPI, SQLAlchemy, Alembic (migrations), Pydantic
+- **Database**: SQLite (dev), PostgreSQL (production)
+- **Auth**: JWT with refresh tokens, OAuth 2.0
+- **AI**: Groq API, Claude API
+- **Deployment**: Docker, Railway, Render, Vercel
 
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- Python 3.9+
+- pnpm or npm
+
+### Local Development
+
+1. **Install dependencies:**
 ```bash
+npm install
 python -m pip install -r backend/requirements.txt
 ```
 
-3. Copy env files:
-
+2. **Setup environment files:**
 ```bash
-copy .env.example .env
-copy backend\.env.example backend\.env
+cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
-4. Start the full stack:
-
+3. **Start the full stack:**
 ```bash
 npm run dev
 ```
 
 This starts:
+- **Frontend**: http://127.0.0.1:5173
+- **Backend API**: http://127.0.0.1:8000
+- **API Docs**: http://127.0.0.1:8000/docs
 
-- frontend on `http://127.0.0.1:5173`
-- backend on `http://127.0.0.1:8000`
-- backend docs on `http://127.0.0.1:8000/docs`
+### Demo Credentials
+- **Username**: `demo`
+- **Password**: `demo12345`
 
-`npm run dev:backend` now applies Alembic migrations before the API starts, so local startup stays aligned with production.
+## 📚 Available Scripts
 
-## Deploy With Docker
-
-1. Copy the production env templates:
-
+### Frontend
 ```bash
-copy .env.production.example .env.production
-copy backend\.env.production.example backend\.env.production
+npm run dev:frontend    # Start Vite dev server (port 5173)
+npm run build           # Build for production
 ```
 
-2. Edit `backend/.env.production` with your real values.
+### Backend
+```bash
+npm run dev:backend     # Start FastAPI server with auto-migrations (port 8000)
+npm run test:backend    # Run pytest suite
+```
 
-3. Build and start the production stack:
+### Full Stack
+```bash
+npm run dev             # Run frontend and backend concurrently
+npm run docker:up       # Build and run production Docker stack
+npm run docker:down     # Stop Docker stack
+```
+
+## 🐳 Docker Deployment
+
+Production deployment using Docker Compose:
 
 ```bash
+# Setup production env files
+cp .env.production.example .env.production
+cp backend/.env.production.example backend/.env.production
+
+# Edit with your production values
+# Then deploy:
 npm run docker:up
 ```
 
-This starts:
+Services:
+- **Frontend**: http://localhost:8080
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8080/docs (proxied)
 
-- frontend on `http://localhost:8080`
-- backend on `http://localhost:8000`
-- backend docs proxied through the frontend container on `http://localhost:8080/docs`
+## 🌐 Production Deployment
 
-To stop it:
+### Recommended Architecture
+- **Frontend**: Vercel
+- **Backend API**: Render
+- **Database**: Render PostgreSQL
+- **Cache/Rate Limiting**: Render Key Value
 
-```bash
-npm run docker:down
+### Environment Configuration
+
+**Backend Environment Variables:**
+```
+ENVIRONMENT=production
+DATABASE_URL=postgres://...
+SECRET_KEY=<generate-secure-key>
+LLM_MODE=live              # Must be 'live' in production
+GROQ_API_KEY=<your-key>
+CLAUDE_API_KEY=<your-key>
+GOOGLE_CLIENT_ID=<your-id>
+GOOGLE_CLIENT_SECRET=<your-secret>
+GITHUB_CLIENT_ID=<your-id>
+GITHUB_CLIENT_SECRET=<your-secret>
+JUDGE0_BASE_URL=<judge0-url>
+JUDGE0_API_KEY=<judge0-key>
+BACKEND_BASE_URL=https://your-api-domain.com
+FRONTEND_BASE_URL=https://your-frontend-domain.com
 ```
 
-## Useful Scripts
+**Vercel Configuration:**
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable: `VITE_API_BASE_URL=https://your-backend-domain.com/api/v1`
 
-- `npm run dev`: start frontend and backend together
-- `npm run dev:frontend`: start only the Vite frontend
-- `npm run dev:backend`: run migrations and start only the FastAPI backend
-- `npm run build`: build the frontend
-- `npm run test:backend`: run backend tests
-- `npm run docker:up`: build and run the production Docker stack
-- `npm run docker:down`: stop the production Docker stack
+### Deployment Guides
+- See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment checklist and third-party service setup
+- See [RAILWAY_SUPABASE_DEPLOYMENT.md](RAILWAY_SUPABASE_DEPLOYMENT.md) for Railway + Supabase hosted path
 
-## Demo Login
+## ⚙️ OAuth Setup
 
-- Username: `demo`
-- Password: `demo12345`
+Google and GitHub OAuth are supported. Set these environment variables to enable:
 
-The demo account is intended for local development only. Production envs should keep `SEED_DEMO_DATA=false`.
+```
+GOOGLE_CLIENT_ID=<your-google-client-id>
+GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+GITHUB_CLIENT_ID=<your-github-client-id>
+GITHUB_CLIENT_SECRET=<your-github-client-secret>
+BACKEND_BASE_URL=https://your-backend-url
+FRONTEND_BASE_URL=https://your-frontend-url
+```
 
-## Deployment Guide
+Detailed provider setup in [DEPLOYMENT.md](DEPLOYMENT.md).
 
-The detailed deploy checklist, required third-party services, and post-deploy verification steps are in [DEPLOYMENT.md](DEPLOYMENT.md).
-For the lower-friction hosted path using Railway + Supabase + Upstash, use [RAILWAY_SUPABASE_DEPLOYMENT.md](RAILWAY_SUPABASE_DEPLOYMENT.md).
-Production is now strict about live integrations: no mock AI, no mock execution, and no logged password-reset links in production.
+## 🧪 Testing
 
-## Production Target
+### Backend Tests
+```bash
+cd backend
+python -m pytest tests -q
+```
 
-The recommended production path is:
+### CI/CD
+GitHub Actions runs on every commit:
+- Frontend build verification
+- Backend test suite
+- Type checking
 
-- frontend on Vercel
-- backend API on Render
-- managed Render Postgres
-- managed Render Key Value for shared rate limiting
+See [.github/workflows/ci.yml](.github/workflows/ci.yml) for details.
 
-The checked-in [render.yaml](render.yaml) now provisions the API, Postgres, and Key Value together. The backend production template also keeps Judge0 first in the execution provider order while leaving OneCompiler and Compiler.io disabled unless you intentionally re-enable them.
+## 📖 API Documentation
 
-## OAuth Providers
+Interactive API docs available at:
+- **Development**: http://localhost:8000/docs
+- **Production**: `https://your-backend-domain.com/docs`
 
-Google and GitHub OAuth are now supported. They stay hidden in the UI until you set the related backend env values:
+### Key Endpoints
 
-- `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
-- `GITHUB_CLIENT_ID`
-- `GITHUB_CLIENT_SECRET`
-- `BACKEND_BASE_URL`
-- `FRONTEND_BASE_URL`
+**Authentication:**
+- `POST /api/v1/auth/signup` - Create new account
+- `POST /api/v1/auth/login` - Login with credentials
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/logout` - Logout
 
-Provider-specific setup steps are documented in [DEPLOYMENT.md](DEPLOYMENT.md).
+**Workspaces:**
+- `GET /api/v1/workspaces` - List user workspaces
+- `POST /api/v1/workspaces` - Create workspace
+- `GET /api/v1/workspaces/{id}` - Get workspace details
+- `PUT /api/v1/workspaces/{id}` - Update workspace
 
-## Vercel Frontend
+**Code Execution:**
+- `POST /api/v1/execute` - Execute code
+- `GET /api/v1/execute/{id}` - Get execution result
 
-If you deploy the frontend on Vercel:
+**AI Analysis:**
+- `POST /api/v1/ai/explain` - Get code explanation
+- `POST /api/v1/ai/bugs` - Detect bugs in code
+- `POST /api/v1/ai/chat` - Chat with AI mentor
+- `POST /api/v1/ai/summary` - Generate code summary
 
-- set the Vercel build command to `npm run build`
-- set the output directory to `dist`
-- set the Vercel environment variable `VITE_API_BASE_URL` to your backend API URL, for example `https://your-backend-domain.com/api/v1`
+## 🛠️ Development
 
-This repo now includes [vercel.json](vercel.json) so React Router paths like `/oauth/callback`, `/reset-password`, `/ide`, and `/analysis` rewrite correctly to the SPA entrypoint.
+### Project Structure
 
-## CI
+**Frontend** (`src/`):
+- `components/` - Reusable UI components (Radix UI based)
+- `pages/` - Page components (IDE, Dashboard, Analysis)
+- `hooks/` - Custom React hooks
+- `services/` - API client and business logic
+- `styles/` - Tailwind CSS configuration
 
-GitHub Actions CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml). It runs the same release gates used in deployment prep:
+**Backend** (`backend/app/`):
+- `models/` - SQLAlchemy database models
+- `schemas/` - Pydantic request/response schemas
+- `routes/` - API endpoint definitions
+- `services/` - Business logic (auth, execution, AI)
+- `crud/` - Database operations
+- `core/` - Configuration and utilities
+- `tests/` - Test suite
 
-- `npm run build`
-- `python -m pytest tests -q` in `backend`
+### Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Run tests: `npm run test:backend` and `npm run build`
+4. Submit a pull request
+
+## 📋 Important Notes
+
+- **Production Only**: Production deployments enforce live AI and execution providers (no mocking)
+- **Email Setup**: Password reset requires valid SMTP configuration
+- **Security**: Keep `SECRET_KEY` secure and unique per environment
+- **Database**: Migrations run automatically on backend startup
+
+## 📄 License
+
+See LICENSE file for details.
+
+## 🤝 Support
+
+For issues, questions, or feature requests, please open a GitHub issue or check the deployment guides.
