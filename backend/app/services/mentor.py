@@ -60,9 +60,7 @@ class MentorAnalysisService:
             comments = self._sanitize_comments(payload.get("comments"), len(code.splitlines()))
             if comments:
                 return LiveCommentsResponse(comments=comments, provider=provider)
-        if settings.allow_mock_fallbacks:
-            return LiveCommentsResponse(comments=fallback_comments, provider="builtin")
-        self._raise_live_ai_failed("live comments")
+        return LiveCommentsResponse(comments=fallback_comments, provider="builtin")
 
     def summary(self, code: str, language: str) -> SummaryResponse:
         resolved_language = detect_language(code, language)
@@ -77,9 +75,7 @@ class MentorAnalysisService:
             summary = self._string_or_default(payload.get("summary"), "")
             if summary:
                 return SummaryResponse(summary=summary, provider=provider)
-        if settings.allow_mock_fallbacks:
-            return SummaryResponse(summary=fallback_summary, provider="builtin")
-        self._raise_live_ai_failed("summary")
+        return SummaryResponse(summary=fallback_summary, provider="builtin")
 
     def explanation(self, code: str, language: str) -> ExplanationResponse:
         resolved_language = detect_language(code, language)
@@ -105,13 +101,11 @@ class MentorAnalysisService:
             full_explanation = self._string_or_default(payload.get("full_explanation"), "")
             if sections and full_explanation:
                 return ExplanationResponse(sections=sections, full_explanation=full_explanation, provider=provider)
-        if settings.allow_mock_fallbacks:
-            return ExplanationResponse(
-                sections=fallback_sections,
-                full_explanation=fallback_full_explanation,
-                provider="builtin",
-            )
-        self._raise_live_ai_failed("explanation")
+        return ExplanationResponse(
+            sections=fallback_sections,
+            full_explanation=fallback_full_explanation,
+            provider="builtin",
+        )
 
     def line_explanation(self, code: str, language: str, line_number: int) -> LineExplanationResponse:
         resolved_language = detect_language(code, language)
@@ -137,9 +131,7 @@ class MentorAnalysisService:
                     related_lines=related_lines or fallback_result["related_lines"],
                     provider=provider,
                 )
-        if settings.allow_mock_fallbacks:
-            return LineExplanationResponse(**fallback_result, provider="builtin")
-        self._raise_live_ai_failed("line explanation")
+        return LineExplanationResponse(**fallback_result, provider="builtin")
 
     def bugs(self, code: str, language: str) -> BugsResponse:
         resolved_language = detect_language(code, language)
@@ -153,9 +145,7 @@ class MentorAnalysisService:
         if payload:
             bugs = self._sanitize_bugs(payload.get("bugs"), len(code.splitlines()))
             return BugsResponse(bugs=bugs, provider=provider)
-        if settings.allow_mock_fallbacks:
-            return BugsResponse(bugs=fallback_bugs, provider="builtin")
-        self._raise_live_ai_failed("bug analysis")
+        return BugsResponse(bugs=fallback_bugs, provider="builtin")
 
     def assumptions(self, code: str, language: str) -> AssumptionsResponse:
         resolved_language = detect_language(code, language)
@@ -170,9 +160,7 @@ class MentorAnalysisService:
             assumptions = self._sanitize_assumptions(payload.get("assumptions"))
             if assumptions:
                 return AssumptionsResponse(assumptions=assumptions, provider=provider)
-        if settings.allow_mock_fallbacks:
-            return AssumptionsResponse(assumptions=fallback_assumptions, provider="builtin")
-        self._raise_live_ai_failed("assumption analysis")
+        return AssumptionsResponse(assumptions=fallback_assumptions, provider="builtin")
 
     def on_track(self, code: str, language: str) -> OnTrackResponse:
         resolved_language = detect_language(code, language)
@@ -198,9 +186,7 @@ class MentorAnalysisService:
                     error_count=fallback_status["error_count"],
                     provider=provider,
                 )
-        if settings.allow_mock_fallbacks:
-            return OnTrackResponse(**fallback_status, provider="builtin")
-        self._raise_live_ai_failed("progress analysis")
+        return OnTrackResponse(**fallback_status, provider="builtin")
 
     def chat(self, code: str, language: str, message: str, history: list[dict[str, Any]] | None = None) -> MentorChatResponse:
         resolved_language = detect_language(code, language)
@@ -227,9 +213,7 @@ class MentorAnalysisService:
                     follow_ups=follow_ups,
                     provider=provider,
                 )
-        if settings.allow_mock_fallbacks:
-            return MentorChatResponse(**fallback_payload, provider="builtin")
-        self._raise_live_ai_failed("mentor chat")
+        return MentorChatResponse(**fallback_payload, provider="builtin")
 
     def _ensure_live_ai_available(self) -> None:
         if settings.allow_mock_fallbacks:

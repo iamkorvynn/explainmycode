@@ -69,17 +69,28 @@ export function AIAnalysisDashboard() {
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
           <span className="font-semibold text-lg">AI Analysis Dashboard</span>
+          {data?.provider && (
+            <span className="ml-2 text-[11px] px-2.5 py-0.5 rounded-full bg-[#1e293b] text-[#94a3b8] border border-[#334155] font-normal">
+              {data.provider === "groq"
+                ? "Powered by Groq AI"
+                : data.provider === "claude"
+                ? "Powered by Claude AI"
+                : "Built-in Code Analyzer"}
+            </span>
+          )}
         </div>
 
         <button
           onClick={() => void loadDashboard()}
           className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#374151] transition-all flex items-center justify-center"
+          title="Reload Dashboard"
         >
           <RefreshCcw className="w-4 h-4 text-[#9ca3af]" />
         </button>
         <button
           onClick={() => void handleLogout()}
           className="w-9 h-9 rounded-lg bg-[#1f2937] hover:bg-[#ef4444]/20 transition-all flex items-center justify-center group"
+          title="Log Out"
         >
           <LogOut className="w-4 h-4 text-[#9ca3af] group-hover:text-[#ef4444]" />
         </button>
@@ -88,12 +99,26 @@ export function AIAnalysisDashboard() {
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto">
           {isLoading ? (
-            <div className="rounded-lg border border-[#1f2937] bg-[#111827] p-8 text-sm text-[#9ca3af]">
-              Building the dashboard from your current code...
+            <div className="rounded-lg border border-[#1f2937] bg-[#111827] p-8 text-sm text-[#9ca3af] flex items-center gap-3">
+              <div className="w-4 h-4 border-2 border-[#22c55e]/30 border-t-[#22c55e] rounded-full animate-spin" />
+              <span>Building the dashboard from your current code...</span>
             </div>
           ) : errorMessage ? (
-            <div className="rounded-lg border border-[#ef4444]/40 bg-[#7f1d1d]/30 p-6 text-sm text-[#fecaca]">
-              {errorMessage}
+            <div className="rounded-lg border border-[#ef4444]/40 bg-[#7f1d1d]/30 p-6 text-sm text-[#fecaca] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-[#f87171] shrink-0" />
+                <div>
+                  <p className="font-semibold text-white">Analysis Notice</p>
+                  <p className="text-xs text-[#fecaca]/80">{errorMessage}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => void loadDashboard()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ef4444]/20 hover:bg-[#ef4444]/30 border border-[#ef4444]/40 text-xs font-medium text-white transition-all shrink-0"
+              >
+                <RefreshCcw className="w-3.5 h-3.5" />
+                Retry Analysis
+              </button>
             </div>
           ) : data ? (
             <>

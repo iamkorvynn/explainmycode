@@ -53,19 +53,14 @@ class DashboardAnalysisService:
         if not settings.allow_mock_fallbacks:
             self.live_llm.ensure_live_support()
 
+        preferred = "claude" if settings.claude_api_key else "groq"
         payload, provider = self.live_llm.generate_json(
-            preferred="claude",
+            preferred=preferred,
             system_prompt=DASHBOARD_ANALYSIS_PROMPT,
             user_prompt=build_dashboard_prompt(resolved_language, code, base_response.model_dump()),
         )
         if not payload:
-            if settings.allow_mock_fallbacks:
-                return base_response
-            raise AppException(
-                "Live AI dashboard analysis is unavailable. Check your provider credentials and model access.",
-                status_code=503,
-                code="live_ai_provider_unavailable",
-            )
+            return base_response
 
         summary = self._sanitize_summary(payload.get("summary"), base_response.summary.model_dump())
         detected = self._sanitize_algorithms(

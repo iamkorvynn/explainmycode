@@ -44,19 +44,14 @@ class VisualizationService:
         fallback = self._generated_detail(code=code, language=resolved_language, algorithm_name=algorithm_name, prompt=prompt)
         if not settings.allow_mock_fallbacks:
             self.live_llm.ensure_live_support()
+        preferred = "claude" if settings.claude_api_key else "groq"
         payload, provider = self.live_llm.generate_json(
-            preferred="claude",
+            preferred=preferred,
             system_prompt=VISUALIZATION_GENERATION_PROMPT,
             user_prompt=build_visualization_prompt(resolved_language, code, algorithm_name, prompt, fallback.model_dump()),
         )
         if not payload:
-            if settings.allow_mock_fallbacks:
-                return fallback
-            raise AppException(
-                "Live AI visualization generation is unavailable. Check your provider credentials and model access.",
-                status_code=503,
-                code="live_ai_provider_unavailable",
-            )
+            return fallback
         detail = self._sanitize_generated_payload(payload, fallback)
         return detail.model_copy(update={"provider": provider, "source": "generated"})
 
