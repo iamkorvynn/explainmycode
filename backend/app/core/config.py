@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     backend_base_url: str = "http://127.0.0.1:8000"
     llm_mode: str = "mock"
     groq_api_key: str = ""
-    groq_model: str = "llama-3.1-8b-instant"
+    groq_model: str = "openai/gpt-oss-20b"
     claude_api_key: str = ""
     claude_model: str = "claude-3-5-sonnet-latest"
     google_client_id: str = ""
