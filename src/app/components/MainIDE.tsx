@@ -194,14 +194,13 @@ export function MainIDE() {
     setSelectedFileId(node.id);
     setSelectedLine(null);
     setExplanationMode("section");
-    setActiveAITab("Comments");
+    setActiveAITab((current) => (current === "Chat" ? "Chat" : "Comments"));
     setCode(nextCode);
     setPersistedCode(nextCode);
     setLanguage(nextLanguage);
     setMentorResponse("");
     setMentorComments([]);
     setMentorError("");
-    setChatMessages([]);
     setCurrentWorkspaceState(workspaceIdOverride ?? workspace?.id ?? node.workspace_id, node.id);
     setCurrentCodeState(nextCode, nextLanguage);
   }
@@ -422,11 +421,6 @@ export function MainIDE() {
   }
 
   async function handleSendMentorMessage(message: string) {
-    if (!workspace?.id || !selectedFile) {
-      setMentorError("Select or create a file before chatting with the mentor.");
-      return;
-    }
-
     const trimmedMessage = message.trim();
     if (!trimmedMessage) {
       return;
@@ -441,11 +435,11 @@ export function MainIDE() {
     setMentorError("");
     try {
       const response = await sendMentorChat({
-        code,
-        language,
+        code: code || "",
+        language: language || "python",
         message: trimmedMessage,
-        filename: selectedFile.name,
-        workspaceId: workspace.id,
+        filename: selectedFile?.name ?? "scratchpad.py",
+        workspaceId: workspace?.id ?? undefined,
         history: nextHistory.map((entry) => ({
           role: entry.role,
           content: entry.content,
@@ -455,9 +449,9 @@ export function MainIDE() {
         ...nextHistory,
         {
           role: "assistant",
-          content: response.answer,
-          followUps: response.follow_ups,
-          citations: response.citations,
+          content: response.answer || "No response received.",
+          followUps: response.follow_ups || [],
+          citations: response.citations || [],
         },
       ]);
     } catch (error) {
@@ -557,7 +551,7 @@ export function MainIDE() {
               code={code}
               errorMessage={mentorError}
               onSendMessage={handleSendMentorMessage}
-              canChat={Boolean(workspace?.id && selectedFile)}
+              canChat={true}
             />
           </Panel>
         </PanelGroup>

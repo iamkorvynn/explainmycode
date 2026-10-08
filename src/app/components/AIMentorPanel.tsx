@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send, Loader2, MessageSquare, FileText, Bug, Shield, Lightbulb, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -43,18 +43,21 @@ export function AIMentorPanel({
   code,
   errorMessage,
   onSendMessage,
-  canChat,
+  canChat: _canChat,
 }: AIMentorPanelProps) {
   const [chatInput, setChatInput] = useState("");
 
   const handleSendMessage = async () => {
     const message = chatInput.trim();
-    if (!message) {
+    if (!message || isLoading) {
       return;
     }
 
-    await onSendMessage(message);
     setChatInput("");
+    if (activeTab !== "Chat") {
+      onTabChange("Chat");
+    }
+    await onSendMessage(message);
   };
 
   return (
@@ -133,36 +136,31 @@ export function AIMentorPanel({
       </div>
 
       <div className="p-4 border-t border-[#1f2937]">
-        {activeTab === "Chat" ? (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(event) => setChatInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  void handleSendMessage();
-                }
-              }}
-              disabled={!canChat || isLoading}
-              placeholder={canChat ? "Ask AI Mentor about this code..." : "Open or create a file to chat with the mentor"}
-              className="flex-1 h-10 bg-[#1f2937] border border-[#374151] rounded-lg px-4 text-sm text-[#e5e7eb] placeholder:text-[#6b7280] focus:outline-none focus:border-[#22c55e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            />
-            <motion.button
-              whileHover={{ scale: canChat && !isLoading ? 1.05 : 1 }}
-              whileTap={{ scale: canChat && !isLoading ? 0.95 : 1 }}
-              onClick={() => void handleSendMessage()}
-              disabled={!canChat || isLoading}
-              className="w-10 h-10 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#14532d] disabled:cursor-not-allowed rounded-lg flex items-center justify-center transition-colors shadow-lg shadow-[#22c55e]/20"
-            >
-              <Send className="w-4 h-4 text-white" />
-            </motion.button>
-          </div>
-        ) : (
-          <div className="text-xs text-[#6b7280]">
-            Open the <span className="text-[#22c55e] font-medium">Chat</span> tab to ask follow-up questions about the current file.
-          </div>
-        )}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(event) => setChatInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                void handleSendMessage();
+              }
+            }}
+            disabled={isLoading}
+            placeholder="Ask AI Mentor about this code (or general questions)..."
+            className="flex-1 h-10 bg-[#1f2937] border border-[#374151] rounded-lg px-4 text-sm text-[#e5e7eb] placeholder:text-[#6b7280] focus:outline-none focus:border-[#22c55e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          />
+          <motion.button
+            whileHover={{ scale: !isLoading ? 1.05 : 1 }}
+            whileTap={{ scale: !isLoading ? 0.95 : 1 }}
+            onClick={() => void handleSendMessage()}
+            disabled={isLoading || !chatInput.trim()}
+            className="w-10 h-10 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#14532d] disabled:cursor-not-allowed rounded-lg flex items-center justify-center transition-colors shadow-lg shadow-[#22c55e]/20"
+          >
+            <Send className="w-4 h-4 text-white" />
+          </motion.button>
+        </div>
       </div>
     </div>
   );
@@ -266,6 +264,12 @@ function ChatTab({
   errorMessage?: string;
   onFollowUpClick: (message: string) => void;
 }) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading, errorMessage]);
+
   if (!messages.length && !isLoading && !errorMessage) {
     return (
       <div className="text-[#6b7280] text-sm italic">
@@ -278,7 +282,7 @@ function ChatTab({
     <div className="space-y-4">
       {messages.map((message, index) => (
         <motion.div
-          key={`${message.role}-${index}-${message.content.slice(0, 24)}`}
+          key={`${message.role}-${index}-${(message.content || "").slice(0, 24)}`}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className={`rounded-2xl border p-4 ${
@@ -291,7 +295,7 @@ function ChatTab({
             {message.role === "user" ? "You" : "AI Mentor"}
           </div>
           {message.role === "assistant" ? (
-            <ResponseRenderer content={message.content} />
+            <ResponseRenderer content={message.content || ""} />
           ) : (
             <p className="text-sm text-[#e5e7eb]">{message.content}</p>
           )}
@@ -343,12 +347,14 @@ function ChatTab({
           </div>
         </motion.div>
       ) : null}
+
+      <div ref={messagesEndRef} />
     </div>
   );
 }
 
 function ResponseRenderer({ content }: { content: string }) {
-  const lines = content.split("\n");
+  const lines = (content || "").split("\n");
 
   return (
     <div className="space-y-3">
