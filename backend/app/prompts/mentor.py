@@ -15,6 +15,30 @@ Return valid JSON only. Do not wrap the JSON in markdown fences.
 Stay grounded in the provided code, call out real risks, and keep the language friendly but precise.
 """
 
+CHAT_SYSTEM_PROMPT = """
+You are ExplainMyCode's expert AI programming mentor.
+You help developers and students understand, write, debug, and optimize code.
+Guidelines:
+1. Always answer the user's question directly, accurately, and thoroughly.
+2. If the user asks about the code in the editor, reference it, explain how it works, and provide citations for relevant lines.
+3. If the user asks to write code, solve a problem, or improve the code, provide clean, idiomatic code examples with explanations.
+4. If the user asks a conceptual question (e.g. algorithms, data structures, math, concepts), provide a clear and educational explanation.
+5. If the user asks a conversational or general question, answer it directly and helpfully.
+6. Always output valid JSON strictly adhering to the schema below. Do not wrap in markdown code blocks.
+
+Response schema:
+{
+  "answer": "Your comprehensive, direct answer formatted with clean markdown when code or lists help.",
+  "citations": [
+    {"label": "Line X", "line": 1, "reason": "Why this line is cited (optional, only when referencing editor code)"}
+  ],
+  "follow_ups": [
+    "Contextually relevant follow-up question 1",
+    "Contextually relevant follow-up question 2"
+  ]
+}
+"""
+
 _MAX_CODE_CHARS = 12000
 
 
@@ -179,31 +203,40 @@ def build_chat_prompt(
     language: str,
     code: str,
     message: str,
-    history: list[dict[str, Any]],
-    heuristic_answer: dict[str, Any],
+    history: list[dict[str, Any]] | None = None,
+    heuristic_answer: dict[str, Any] | None = None,
 ) -> str:
-    recent_history = history[-5:]
-    return _task_prompt(
-        task="chat",
-        language=language,
-        code=code,
-        instructions=[
-            "Answer the user's question directly and concisely.",
-            "Use citations only when a specific line or code region materially supports the answer.",
-            "Each citation item should include label, line, and reason.",
-            "Provide 1-3 useful follow-up questions.",
-        ],
-        response_shape={
-            "answer": "Direct answer to the user's question.",
-            "citations": [{"label": "Line 4", "line": 4, "reason": "This branch handles the core comparison."}],
-            "follow_ups": ["Ask for edge cases", "Ask for a line-by-line explanation"],
-        },
-        heuristic_seed={
-            "question": message,
-            "history": recent_history,
-            "fallback": heuristic_answer,
-        },
+    sections = [
+        "Task: chat",
+        f"Language: {language}",
+    ]
+    if code and code.strip():
+        sections.append(f"### Current Code in Editor ({language}):\n```{language.lower()}\n{_trim_code(code)}\n```")
+    else:
+        sections.append("### Current Code in Editor: (No active code open)")
+
+    recent_history = (history or [])[-6:]
+    if recent_history:
+        history_lines = []
+        for item in recent_history:
+            role = "User" if item.get("role") == "user" else "Assistant"
+            content = str(item.get("content", "")).strip()
+            if content:
+                history_lines.append(f"{role}: {content}")
+        if history_lines:
+            sections.append("### Previous Conversation:\n" + "\n".join(history_lines))
+
+    sections.append(f"### User's Current Question / Request:\n{message}")
+    sections.append(
+        "Instructions:\n"
+        "- Answer the User's Current Question directly, accurately, and helpfully.\n"
+        "- If the question references the editor code, cite relevant line numbers in citations.\n"
+        "- If the question asks for code or an algorithm, provide working code and a clear explanation.\n"
+        "- If the question is a greeting or general question, respond conversationally and offer help.\n"
+        "- Provide 1-3 useful, relevant follow-up questions.\n"
+        "- Return ONLY valid JSON adhering to the required schema with keys: 'answer', 'citations', 'follow_ups'."
     )
+    return "\n\n".join(sections)
 
 
 def _task_prompt(

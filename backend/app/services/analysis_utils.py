@@ -353,23 +353,102 @@ def suggestions(code: str) -> list[dict]:
 
 
 def mentor_chat_answer(code: str, language: str, message: str) -> dict:
-    lower_message = message.lower()
-    if "complex" in lower_message or "time complexity" in lower_message:
+    import re
+
+    lower_message = message.lower().strip()
+
+    # Greetings and general introductions
+    if any(lower_message.startswith(g) or lower_message == g for g in ["hi", "hello", "hey", "greetings", "good morning", "good evening", "who are you"]):
+        return {
+            "answer": f"Hello! I am your AI programming mentor. I can help explain your {language} code, identify bugs, suggest optimizations, or write new code. What would you like to work on?",
+            "citations": [],
+            "follow_ups": [
+                "Explain the current code",
+                "Check for potential bugs or edge cases",
+                "Suggest performance optimizations",
+            ],
+        }
+
+    # Complexity questions
+    if any(k in lower_message for k in ["complex", "big o", "time complexity", "space complexity"]):
         detected = detected_algorithms(code)
         if detected:
-            answer = f"The strongest match in this {language} code is {detected[0]['name']} with estimated complexity {detected[0]['complexity']}."
+            answer = f"The primary algorithm detected in this {language} code is {detected[0]['name']} with estimated time complexity {detected[0]['complexity']}."
         else:
-            answer = "The code appears mostly iterative, so the runtime likely scales with the number of processed elements."
-    elif "bug" in lower_message or "wrong" in lower_message:
+            answer = f"Based on the control flow in this {language} code, the time complexity scales with the loop bounds and input size."
+        return {
+            "answer": answer,
+            "citations": [],
+            "follow_ups": [
+                "How can I optimize this complexity?",
+                "What is the space complexity?",
+            ],
+        }
+
+    # Bug / issue questions
+    if any(k in lower_message for k in ["bug", "error", "wrong", "fail", "broken", "issue", "crash"]):
         bugs = detect_bugs(code)
-        answer = bugs[0]["description"] if bugs else "I do not see a clear critical bug from the static scan, but input validation and boundary checks would still help."
-    else:
-        answer = f"{summarize_code(code, language)} The main areas to review next are assumptions, edge cases, and test coverage."
+        if bugs:
+            b = bugs[0]
+            answer = f"A potential hazard was detected around line {b['line']}: {b['title']}. {b['description']} Recommendation: {b.get('fix_suggestion', 'Add boundary checks.')}"
+            citations = [{"label": f"Line {b['line']}", "line": b["line"], "reason": b["title"]}]
+        else:
+            answer = "No critical syntax or boundary bugs were detected in the static scan. Ensure edge cases like null/empty inputs and unexpected types are handled."
+            citations = []
+        return {
+            "answer": answer,
+            "citations": citations,
+            "follow_ups": [
+                "Show edge cases to test",
+                "How can I add defensive validation?",
+            ],
+        }
+
+    # Bubble sort / algorithm generation requests
+    if "bubble sort" in lower_message:
+        return {
+            "answer": "Here is an implementation of Bubble Sort in Python:\n\n```python\ndef bubble_sort(arr):\n    n = len(arr)\n    for i in range(n):\n        swapped = False\n        for j in range(0, n - i - 1):\n            if arr[j] > arr[j + 1]:\n                arr[j], arr[j + 1] = arr[j + 1], arr[j]\n                swapped = True\n        if not swapped:\n            break\n    return arr\n```\nIt has an average and worst-case time complexity of O(n^2), and O(n) best-case when already sorted.",
+            "citations": [],
+            "follow_ups": [
+                "How does quicksort compare?",
+                "Can we sort in-place?",
+            ],
+        }
+
+    # Line explanation requests
+    line_match = re.search(r"line\s+(\d+)", lower_message)
+    if line_match:
+        line_num = int(line_match.group(1))
+        exp = explain_line(code, line_num)
+        return {
+            "answer": f"Line {line_num}: {exp['explanation']}",
+            "citations": [{"label": f"Line {line_num}", "line": line_num, "reason": "Target line"}],
+            "follow_ups": [
+                f"Explain related lines {exp.get('related_lines', [])}",
+                "How can this line be simplified?",
+            ],
+        }
+
+    # Summary and code overview requests
+    if any(k in lower_message for k in ["explain", "summary", "what does", "how does", "overview"]):
+        summary = summarize_code(code, language)
+        return {
+            "answer": f"Overview of the code:\n\n{summary}\n\nThe program defines core logic and executes sequentially. Would you like me to walk through a specific function or line?",
+            "citations": [],
+            "follow_ups": [
+                "Explain this code line by line",
+                "List assumptions made by this code",
+            ],
+        }
+
+    # General question fallback
+    summary = summarize_code(code, language)
     return {
-        "answer": answer,
+        "answer": f"Regarding your question ('{message}'): {summary} Feel free to ask for specific code modifications, explanations of algorithms, or test cases.",
         "citations": [],
         "follow_ups": [
-            "Ask for a line-by-line explanation",
-            "Ask for bug risks and edge cases",
+            "Explain this code line by line",
+            "Show test cases for this code",
+            "How can I refactor this?",
         ],
     }

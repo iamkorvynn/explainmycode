@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.prompts.mentor import (
+    CHAT_SYSTEM_PROMPT,
     DEEP_ANALYSIS_PROMPT,
     FAST_ANALYSIS_PROMPT,
     build_assumptions_prompt,
@@ -206,14 +207,13 @@ class MentorAnalysisService:
         fallback_payload = mentor_chat_answer(code, resolved_language, message)
         self._ensure_live_ai_available()
         payload, provider = self.live_llm.generate_json(
-            preferred="claude",
-            system_prompt=DEEP_ANALYSIS_PROMPT,
+            preferred="groq",
+            system_prompt=CHAT_SYSTEM_PROMPT,
             user_prompt=build_chat_prompt(
                 resolved_language,
                 code,
                 message,
                 history or [],
-                fallback_payload,
             ),
         )
         if payload:

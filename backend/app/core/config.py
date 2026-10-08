@@ -137,7 +137,7 @@ class Settings(BaseSettings):
 
     @property
     def allow_mock_fallbacks(self) -> bool:
-        return True
+        return not self.is_production
 
     @property
     def groq_configured(self) -> bool:
