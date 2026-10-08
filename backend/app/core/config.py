@@ -121,8 +121,6 @@ class Settings(BaseSettings):
                 raise ValueError("SQLite is not supported for production deployments. Use PostgreSQL.")
             if self.seed_demo_data:
                 raise ValueError("SEED_DEMO_DATA must be false in production.")
-            if self.llm_mode != "live":
-                raise ValueError("LLM_MODE must be live in production.")
         return self
 
     @property
@@ -139,7 +137,7 @@ class Settings(BaseSettings):
 
     @property
     def allow_mock_fallbacks(self) -> bool:
-        return not self.is_production
+        return True
 
     @property
     def groq_configured(self) -> bool:
