@@ -57,6 +57,16 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        if isinstance(value, str):
+            if value.startswith("postgres://"):
+                return value.replace("postgres://", "postgresql+psycopg://", 1)
+            elif value.startswith("postgresql://") and not value.startswith("postgresql+"):
+                return value.replace("postgresql://", "postgresql+psycopg://", 1)
+        return value
+
     @field_validator("environment", mode="before")
     @classmethod
     def normalize_environment(cls, value: str) -> str:
