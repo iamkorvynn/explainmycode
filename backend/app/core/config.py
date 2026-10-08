@@ -89,7 +89,17 @@ class Settings(BaseSettings):
     @classmethod
     def parse_execution_provider_order(cls, value: str | list[str]) -> list[str]:
         if isinstance(value, str):
-            return [provider.strip() for provider in value.split(",") if provider.strip()]
+            cleaned = value.strip()
+            if cleaned.startswith("[") and cleaned.endswith("]"):
+                import json
+                try:
+                    parsed = json.loads(cleaned)
+                    if isinstance(parsed, list):
+                        return [str(item).strip() for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            import re
+            return [provider.strip() for provider in re.split(r"[\s,]+", cleaned) if provider.strip()]
         return value
 
     @field_validator("execution_provider_order")
