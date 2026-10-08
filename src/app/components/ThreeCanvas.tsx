@@ -36,7 +36,7 @@ export function ThreeCanvas({ className = "", interactive = true }: ThreeCanvasP
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    // 3. Lighting (Warm coral / amber glow matching Stitch palette + cool neon accents)
+    // 3. Lighting (Warm amber glow + cool neon accents)
     const ambientLight = new THREE.AmbientLight(0xffedd5, 0.8);
     scene.add(ambientLight);
 

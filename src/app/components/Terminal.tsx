@@ -102,7 +102,7 @@ export function Terminal({
 
   return (
     <div className="h-full bg-[#FAF9F7] flex flex-col font-sans border-t border-[#ECE8DF] select-text transition-colors">
-      {/* Stitch Top Header Bar */}
+      {/* Top Header Bar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-[#ECE8DF] bg-[#FFFFFF] select-none">
         {/* Left: Tab Navigation */}
         <div className="flex items-center gap-1.5">

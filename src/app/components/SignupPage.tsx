@@ -74,7 +74,7 @@ export function SignupPage() {
         <path d="M-100 700 C400 500, 800 850, 1400 550" stroke="white" strokeWidth="2" />
       </svg>
 
-      {/* Floating Stitch Card Container */}
+      {/* Floating Card Container */}
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -89,10 +89,10 @@ export function SignupPage() {
               className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b] hover:text-[#ff7a50] transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to 3D Home</span>
+              <span>Back to Home</span>
             </button>
             <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#ff7a50]/10 text-[#ff7a50] border border-[#ff7a50]/20 uppercase">
-              Stitch Studio
+              Code Studio
             </span>
           </div>
 

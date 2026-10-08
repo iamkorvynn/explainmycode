@@ -54,7 +54,7 @@ export function CodeEditor({
 
   return (
     <div className="h-full w-full bg-[#FAF9F7] flex flex-col overflow-hidden select-none transition-colors">
-      {/* Top File Tab Strip (Stitch Studio Style) */}
+      {/* Top File Tab Strip */}
       <div className="h-10 bg-[#FFFFFF] border-b border-[#ECE8DF] flex items-center justify-between px-3 select-none">
         <div className="flex items-center gap-1.5">
           {/* Active File Tab Pill */}

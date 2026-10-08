@@ -157,7 +157,7 @@ export function AlgorithmVisualization() {
 
   return (
     <div className="h-screen w-screen bg-gradient-to-br from-[#F8D0B5] via-[#F5C29F] to-[#F3B58C] p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans">
-      {/* Organic Contour Curves Watermark (Stitch Purr'Coffee aesthetic) */}
+      {/* Organic Contour Curves Watermark */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
         viewBox="0 0 1440 900"

@@ -66,7 +66,7 @@ export function TopNavBar({
         <div className="hidden lg:flex items-center gap-1.5 pl-4 border-l border-[#ECE8DF]">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF1EB] text-[#FF7A50] text-[11px] font-semibold border border-[#FFD9CA]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A50] animate-pulse" />
-            Stitch Studio
+            Code Intelligence
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F5F4F0] text-[#78716C] text-[11px] font-medium border border-[#ECE8DF]">
             <Cpu className="w-3 h-3 text-[#10B981]" />
@@ -75,7 +75,7 @@ export function TopNavBar({
         </div>
       </div>
 
-      {/* Center: Purr'Coffee-Style Search Bar with Solid Coral Action Pill */}
+      {/* Center: Search Bar with Action Pill */}
       <div className="flex items-center gap-3 flex-1 max-w-xl mx-4">
         <div className="relative w-full flex items-center">
           <div className="w-full flex items-center bg-[#F7F6F2] hover:bg-[#F2F0EB] focus-within:bg-[#FFFFFF] border border-[#ECE8DF] focus-within:border-[#FF7A50]/50 focus-within:ring-2 focus-within:ring-[#FF7A50]/15 rounded-full pl-3.5 pr-1.5 py-1 transition-all shadow-inner">
