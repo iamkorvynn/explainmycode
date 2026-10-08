@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import { LandingPage } from "./components/LandingPage";
 import { MainIDE } from "./components/MainIDE";
 import { AlgorithmVisualization } from "./components/AlgorithmVisualization";
 import { AIAnalysisDashboard } from "./components/AIAnalysisDashboard";
@@ -72,7 +73,7 @@ function ProtectedAnalysis() {
 export const router = createBrowserRouter([
   {
     path: "/",
-    Component: GuestLogin,
+    Component: LandingPage,
   },
   {
     path: "/login",

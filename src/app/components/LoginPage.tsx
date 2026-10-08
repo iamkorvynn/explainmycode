@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
-import svgPaths from "../../imports/svg-uvuwjcjnes";
+import { Sparkles, ArrowLeft, Lock, User, Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { ApiError, listOAuthProviders, type OAuthProvider } from "../lib/api";
 
@@ -53,254 +53,175 @@ export function LoginPage() {
     }
   };
 
-  const hasOAuthProviders = oauthProviders.length > 0;
-
   return (
-    <div className="bg-[#0f0f0f] relative h-screen w-screen overflow-hidden">
-      {/* Main Heading */}
-      <motion.p
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8 }}
-        className="absolute font-semibold leading-[normal] left-[60px] text-[96px] text-white top-[381px] whitespace-nowrap"
+    <div className="min-h-screen w-screen bg-gradient-to-br from-[#f8d0b5] via-[#f5c29f] to-[#f3b58c] flex items-center justify-center p-4 sm:p-6 select-none font-sans relative overflow-hidden">
+      {/* Background Topographic Wave Contours */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-40 mix-blend-overlay"
+        viewBox="0 0 1200 800"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        Welcome Back .!
-      </motion.p>
+        <path d="M-100 200 C300 100, 600 400, 1300 150" stroke="white" strokeWidth="2" strokeDasharray="4 8" />
+        <path d="M-50 450 C350 250, 750 650, 1350 350" stroke="white" strokeWidth="2.5" />
+        <path d="M-100 700 C400 500, 800 850, 1400 550" stroke="white" strokeWidth="2" />
+      </svg>
 
-      {/* Decorative Circle 1 */}
-      <div className="absolute left-[749px] size-[302px] top-[81px]">
-        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 302 302">
-          <circle cx="151" cy="151" fill="url(#paint0_linear_login_1)" r="151" />
-          <defs>
-            <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_login_1" x1="151" x2="151" y1="0" y2="302">
-              <stop stopColor="#530061" />
-              <stop offset="1" stopColor="#0D0A30" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      {/* Decorative Circle 2 */}
-      <div className="absolute flex items-center justify-center left-[1169.84px] size-[298.315px] top-[719.84px]">
-        <div className="flex-none rotate-[-28.5deg]">
-          <div className="relative size-[220px]">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 220 220">
-              <circle cx="110" cy="110" fill="url(#paint0_linear_login_2)" r="110" />
-              <defs>
-                <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_login_2" x1="110" x2="110" y1="0" y2="220">
-                  <stop stopColor="#300061" />
-                  <stop offset="1" stopColor="#0A1030" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Login Card */}
+      {/* Floating Stitch Card Container */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="absolute top-1/2 -translate-y-1/2 right-[60px] backdrop-blur-[26.5px] h-[796px] rounded-[20px] w-[480px] border border-solid border-white shadow-[-8px_4px_5px_0px_rgba(0,0,0,0.24)]"
-        style={{
-          backgroundImage:
-            "linear-gradient(-53.097deg, rgba(191, 191, 191, 0.063) 5.9849%, rgba(0, 0, 0, 0) 66.277%), linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0%, rgba(0, 0, 0, 0.14) 100%)",
-        }}
+        className="relative z-10 w-full max-w-md rounded-[32px] bg-white shadow-[0_25px_70px_rgba(200,90,40,0.22)] border border-white/80 p-8 sm:p-10 flex flex-col justify-between"
       >
-        <div className="overflow-clip relative rounded-[inherit] size-full p-[40px] flex flex-col">
-          {/* Header */}
-          <div className="mb-[14px]">
-            <h1 className="font-semibold text-[36px] text-white mb-1">Login</h1>
-            <p className="font-medium text-[16px] text-white">Glad you're back.!</p>
+        <div>
+          {/* Header & Back Link */}
+          <div className="flex items-center justify-between mb-8">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#64748b] hover:text-[#ff7a50] transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to 3D Home</span>
+            </button>
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#ff7a50]/10 text-[#ff7a50] border border-[#ff7a50]/20 uppercase">
+              Stitch Studio
+            </span>
           </div>
+
+          {/* Logo & Welcome */}
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-[#ff7a50] flex items-center justify-center text-white shadow-md shadow-[#ff7a50]/30 font-bold text-sm">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <h1 className="text-2xl font-black text-[#1e1e24] tracking-tight">
+              Welcome Back
+            </h1>
+          </div>
+          <p className="text-xs text-[#64748b] mb-6">
+            Log in to access your Docker sandboxes, AI Mentor, and saved workspaces.
+          </p>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-5 p-3 rounded-2xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] text-xs font-medium">
+              {errorMessage}
+            </div>
+          )}
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="flex flex-col gap-[25px]">
-            {/* Username Input */}
-            <div className="relative">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username or email"
-                className="w-full px-[16px] py-[14px] rounded-[12px] border border-solid border-white bg-transparent text-[20px] text-white placeholder:text-white/60 focus:outline-none focus:border-[#8b5cf6] transition-colors"
-              />
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-[#1e1e24] mb-1.5">
+                Username or Email
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af]" />
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="demo or your username"
+                  required
+                  className="w-full h-11 pl-10 pr-4 rounded-2xl bg-[#f8f8f7] border border-[#ebe7df] text-xs text-[#1e1e24] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#ff7a50] transition-colors"
+                />
+              </div>
             </div>
 
-            {/* Password Input */}
             <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-[#1e1e24]">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-[11px] text-[#ff7a50] hover:underline font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9ca3af]" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  className="w-full px-[16px] py-[14px] rounded-[12px] border border-solid border-white bg-transparent text-[20px] text-white placeholder:text-white/60 focus:outline-none focus:border-[#8b5cf6] transition-colors"
+                  placeholder="••••••••"
+                  required
+                  className="w-full h-11 pl-10 pr-10 rounded-2xl bg-[#f8f8f7] border border-[#ebe7df] text-xs text-[#1e1e24] placeholder:text-[#9ca3af] focus:outline-none focus:border-[#ff7a50] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9ca3af] hover:text-[#1e1e24]"
                 >
-                  <div className="relative size-[18px]">
-                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-                      <g>
-                        <path d={svgPaths.p1d230e00} fill="white" />
-                      </g>
-                    </svg>
-                  </div>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center gap-[4px] mt-[12px]">
-                <button
-                  type="button"
-                  onClick={() => setRememberMe(!rememberMe)}
-                  className="relative size-[18px]"
-                >
-                  {rememberMe ? (
-                    <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-                      <g>
-                        <path d={svgPaths.pff37800} fill="url(#paint0_linear_remember)" />
-                      </g>
-                      <defs>
-                        <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear_remember" x1="9" x2="9" y1="2.25" y2="15.75">
-                          <stop stopColor="#7CC1F3" />
-                          <stop offset="1" stopColor="#D27EEF" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  ) : (
-                    <div className="w-full h-full border-2 border-white rounded" />
-                  )}
-                </button>
-                <p className="font-medium text-[16px] text-white">Remember me</p>
               </div>
             </div>
 
-            {/* Login Button */}
-            <div className="flex flex-col gap-[12px] items-center">
-              {errorMessage ? (
-                <div className="w-full rounded-[12px] border border-[#ef4444]/40 bg-[#7f1d1d]/30 px-[16px] py-[12px] text-[14px] text-[#fecaca]">
-                  {errorMessage}
-                </div>
-              ) : null}
-              <motion.button
-                type="submit"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={isSubmitting}
-                className="w-full px-[10px] py-[14px] rounded-[12px] font-semibold text-[20px] text-white"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(94.117deg, rgb(98, 142, 255) 9.9097%, rgb(135, 64, 205) 53.286%, rgb(88, 4, 117) 91.559%)",
-                }}
-              >
-                {isSubmitting ? "Logging in..." : "Login"}
-              </motion.button>
-              <button
-                type="button"
-                onClick={() => navigate("/forgot-password")}
-                className="font-medium text-[16px] text-white hover:text-[#8b5cf6] transition-colors"
-              >
-                Forgot password ?
-              </button>
+            {/* Remember Me */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded text-[#ff7a50] accent-[#ff7a50] cursor-pointer"
+              />
+              <label htmlFor="remember" className="text-xs text-[#64748b] cursor-pointer">
+                Remember me on this browser
+              </label>
             </div>
+
+            {/* Submit Button matching Stitch coral pill */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-12 rounded-full bg-[#ff7a50] hover:bg-[#ff6838] text-white font-extrabold text-sm shadow-md shadow-[#ff7a50]/30 transition-all flex items-center justify-center gap-2 mt-4 active:scale-98 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <LogIn className="w-4 h-4" />
+              )}
+              <span>{isSubmitting ? "Logging in..." : "Log In to Studio"}</span>
+            </button>
           </form>
 
-          {hasOAuthProviders ? (
-            <>
-              <div className="flex gap-[20px] items-center my-[47px]">
-                <div className="flex-1 h-[2px] bg-[#4d4d4d] rounded-full" />
-                <p className="font-medium text-[16px] text-[#4d4d4d]">Or</p>
-                <div className="flex-1 h-[2px] bg-[#4d4d4d] rounded-full" />
+          {/* OAuth Providers */}
+          {oauthProviders.length > 0 && (
+            <div className="mt-6 pt-5 border-t border-[#f1eee7]">
+              <div className="text-[11px] text-center text-[#9ca3af] font-medium mb-3">
+                Or continue with
               </div>
-
-              <div className="flex gap-[18px] items-center justify-center mb-[8px]">
+              <div className="space-y-2">
                 {oauthProviders.map((provider) => (
-                  <SocialIcon key={provider.provider} type={provider.provider as "google" | "facebook" | "github"} authUrl={provider.auth_url ?? ""} />
+                  <a
+                    key={provider.name}
+                    href={provider.auth_url}
+                    className="w-full h-10 rounded-2xl border border-[#ebe7df] bg-[#fbfbfa] hover:bg-white text-xs font-semibold text-[#1e1e24] flex items-center justify-center gap-2 transition-all shadow-xs"
+                  >
+                    <span>Continue with {provider.name}</span>
+                  </a>
                 ))}
               </div>
-            </>
-          ) : null}
-
-          {/* Bottom Section */}
-          <div className="mt-auto">
-            <p className="font-medium text-[16px] text-white text-center mb-[8px]">
-              Don't have an account?{" "}
-              <button
-                onClick={() => navigate("/signup")}
-                className="text-[#8b5cf6] hover:underline"
-              >
-                Signup
-              </button>
-            </p>
-            <div className="bg-gradient-to-b from-[rgba(98,98,98,0)] to-[rgba(98,98,98,0.07)] flex items-center justify-between px-[6px] py-[4px] rounded-[6px]">
-              <p className="font-normal text-[16px] text-white">Terms & Conditions</p>
-              <p className="font-normal text-[16px] text-white">Support</p>
-              <p className="font-normal text-[16px] text-white">Customer Care</p>
             </div>
-          </div>
+          )}
+        </div>
+
+        {/* Signup Link */}
+        <div className="pt-6 mt-6 border-t border-[#f1eee7] text-center text-xs text-[#64748b]">
+          Don&apos;t have an account?{" "}
+          <button
+            onClick={() => navigate("/signup")}
+            className="text-[#ff7a50] font-bold hover:underline"
+          >
+            Create account
+          </button>
         </div>
       </motion.div>
-
-      {/* Decorative Line */}
-      <div className="absolute h-0 left-[330px] top-[550px] w-[561px]">
-        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 561 2">
-          <line stroke="#4D4D4D" strokeDasharray="12 12" strokeLinecap="round" strokeWidth="2" x1="1" x2="560" y1="1" y2="1" />
-        </svg>
-      </div>
     </div>
-  );
-}
-
-function SocialIcon({ type, authUrl }: { type: "google" | "facebook" | "github"; authUrl: string }) {
-  return (
-    <motion.button
-      type="button"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      className="relative size-[42px] cursor-pointer"
-      onClick={() => window.location.assign(authUrl)}
-    >
-      {type === "google" && (
-        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 42 42">
-          <g clipPath="url(#clip0_google)">
-            <path d={svgPaths.p17249700} fill="white" />
-            <path d={svgPaths.p6eed480} fill="#E33629" />
-            <path d={svgPaths.p2051fc00} fill="#F8BD00" />
-            <path d={svgPaths.p36f9a900} fill="#587DBD" />
-            <path d={svgPaths.p4fd1480} fill="#319F43" />
-          </g>
-          <defs>
-            <clipPath id="clip0_google">
-              <rect fill="white" height="42" width="42" />
-            </clipPath>
-          </defs>
-        </svg>
-      )}
-      {type === "facebook" && (
-        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 42 42">
-          <g clipPath="url(#clip0_facebook)">
-            <path d={svgPaths.p17708a00} fill="#1877F2" />
-            <path d={svgPaths.p984ba00} fill="white" />
-          </g>
-          <defs>
-            <clipPath id="clip0_facebook">
-              <rect fill="white" height="42" width="42" />
-            </clipPath>
-          </defs>
-        </svg>
-      )}
-      {type === "github" && (
-        <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 42 42">
-          <g>
-            <path d={svgPaths.p18209680} fill="white" />
-          </g>
-        </svg>
-      )}
-    </motion.button>
   );
 }
