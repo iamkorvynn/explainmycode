@@ -1,5 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Loader2, MessageSquare, FileText, Bug, Shield, Lightbulb, Bot } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  MessageSquare,
+  FileText,
+  Bug,
+  Shield,
+  Lightbulb,
+  Bot,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  Cpu,
+  Layers,
+  Wand2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 import type { LiveComment } from "../lib/api";
@@ -27,7 +43,7 @@ interface AIMentorPanelProps {
 const tabs = [
   { id: "Comments", label: "Comments", icon: MessageSquare },
   { id: "Summary", label: "Summary", icon: FileText },
-  { id: "Explanation", label: "Explanation", icon: Lightbulb },
+  { id: "Explanation", label: "Explain", icon: Lightbulb },
   { id: "Bugs", label: "Bugs", icon: Bug },
   { id: "Assumptions", label: "Assumptions", icon: Shield },
   { id: "Chat", label: "Chat", icon: Bot },
@@ -61,32 +77,54 @@ export function AIMentorPanel({
   };
 
   return (
-    <div className="h-full bg-[#111827] flex flex-col">
-      <div className="p-4 border-b border-[#1f2937]">
-        <h2 className="text-lg font-semibold text-[#e5e7eb] mb-3">AI Mentor</h2>
+    <aside className="h-full bg-[#FCFBFA] border-l border-[#ECE8DF] flex flex-col select-none transition-colors">
+      {/* Purr'Coffee-Style Right Header */}
+      <div className="p-4 border-b border-[#ECE8DF] space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#FFF1EB] border border-[#FFD9CA] flex items-center justify-center text-[#FF7A50]">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-extrabold text-[#1E1E24] leading-tight">
+                AI Inspector
+              </h2>
+              <span className="text-[10px] text-[#A8A29E] font-medium">
+                Live Groq LLaMA 3.3 Mentor
+              </span>
+            </div>
+          </div>
 
-        <div className="flex flex-wrap gap-1">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#F5F4F0] text-[#78716C] text-[10px] font-mono border border-[#ECE8DF]">
+            #LIVE-3243
+          </span>
+        </div>
+
+        {/* Purr'Coffee Segmented Pills Navigation */}
+        <div className="grid grid-cols-3 gap-1 p-1 bg-[#F5F4F0] rounded-2xl border border-[#ECE8DF]">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-all flex items-center gap-1.5 ${
-                  activeTab === tab.id
-                    ? "bg-[#22c55e] text-white shadow-lg shadow-[#22c55e]/20"
-                    : "bg-[#1f2937] text-[#9ca3af] hover:bg-[#374151] hover:text-[#e5e7eb]"
+                className={`py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  isActive
+                    ? "bg-[#FF7A50] text-white shadow-sm shadow-[#FF7A50]/30 font-bold"
+                    : "text-[#78716C] hover:text-[#1E1E24] hover:bg-white/60"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{tab.label}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Main Body Area */}
+      <div className="flex-1 overflow-y-auto p-4 select-text">
         <AnimatePresence mode="wait">
           {activeTab === "Chat" ? (
             <ChatTab
@@ -108,17 +146,21 @@ export function AIMentorPanel({
               key="error"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg border border-[#ef4444]/40 bg-[#7f1d1d]/30 p-4 text-sm text-[#fecaca]"
+              className="rounded-2xl border border-[#FCA5A5] bg-[#FEF2F2] p-4 text-xs text-[#DC2626] space-y-1 shadow-xs"
             >
-              {errorMessage}
+              <div className="font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-[#DC2626]" />
+                Analysis Notification
+              </div>
+              <p>{errorMessage}</p>
             </motion.div>
           ) : response ? (
             <motion.div
               key="response"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="prose prose-invert prose-sm max-w-none"
+              exit={{ opacity: 0, y: -12 }}
+              className="space-y-3"
             >
               <ResponseRenderer content={response} />
             </motion.div>
@@ -127,81 +169,125 @@ export function AIMentorPanel({
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-[#6b7280] text-sm italic"
+              className="text-center py-12 px-4 space-y-3"
             >
-              Select an AI tab, click a line number, or ask the mentor a question about your code.
+              <div className="w-12 h-12 rounded-2xl bg-[#F5F4F0] border border-[#ECE8DF] flex items-center justify-center mx-auto text-[#A8A29E]">
+                <Bot className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <div className="text-xs font-bold text-[#1E1E24]">Ready for Code Analysis</div>
+                <div className="text-xs text-[#A8A29E] leading-relaxed">
+                  Select an AI tab, click any line number in the editor, or ask the mentor a question below.
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div className="p-4 border-t border-[#1f2937]">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(event) => setChatInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                void handleSendMessage();
-              }
-            }}
-            disabled={isLoading}
-            placeholder="Ask AI Mentor about this code (or general questions)..."
-            className="flex-1 h-10 bg-[#1f2937] border border-[#374151] rounded-lg px-4 text-sm text-[#e5e7eb] placeholder:text-[#6b7280] focus:outline-none focus:border-[#22c55e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          />
-          <motion.button
-            whileHover={{ scale: !isLoading ? 1.05 : 1 }}
-            whileTap={{ scale: !isLoading ? 0.95 : 1 }}
-            onClick={() => void handleSendMessage()}
-            disabled={isLoading || !chatInput.trim()}
-            className="w-10 h-10 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#14532d] disabled:cursor-not-allowed rounded-lg flex items-center justify-center transition-colors shadow-lg shadow-[#22c55e]/20"
-          >
-            <Send className="w-4 h-4 text-white" />
-          </motion.button>
-        </div>
+      {/* Bottom Deck (Matching the Purr'Coffee Cart Checkout Deck!) */}
+      <div className="p-4 border-t border-[#ECE8DF] bg-[#FFFFFF] space-y-3">
+        {activeTab === "Chat" ? (
+          <div className="space-y-2">
+            <div className="flex items-center bg-[#F7F6F2] hover:bg-[#F2F0EB] focus-within:bg-[#FFFFFF] border border-[#ECE8DF] focus-within:border-[#FF7A50]/50 focus-within:ring-2 focus-within:ring-[#FF7A50]/15 rounded-2xl pl-3.5 pr-1.5 py-1.5 transition-all shadow-inner">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(event) => setChatInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void handleSendMessage();
+                  }
+                }}
+                disabled={isLoading}
+                placeholder="Ask mentor anything..."
+                className="flex-1 bg-transparent text-xs text-[#1E1E24] placeholder:text-[#A8A29E] font-medium outline-none disabled:opacity-60"
+              />
+              <motion.button
+                whileHover={{ scale: !isLoading ? 1.05 : 1 }}
+                whileTap={{ scale: !isLoading ? 0.95 : 1 }}
+                onClick={() => void handleSendMessage()}
+                disabled={isLoading || !chatInput.trim()}
+                className="w-8 h-8 bg-[#FF7A50] hover:bg-[#FF6633] active:bg-[#E65F35] disabled:bg-[#F5F4F0] disabled:text-[#A8A29E] text-white rounded-xl flex items-center justify-center transition-all shadow-sm shadow-[#FF7A50]/20 cursor-pointer disabled:cursor-not-allowed shrink-0"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </motion.button>
+            </div>
+            <div className="text-[10px] text-[#A8A29E] flex items-center justify-between px-1">
+              <span>Press Enter to send</span>
+              <span className="font-semibold text-[#FF7A50]">Groq LLaMA 3.3 Turbo</span>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Resource / Order Summary Box (matching Purr'Coffee Items & Total preview) */}
+            <div className="p-3 rounded-2xl bg-[#FBFBFA] border border-[#ECE8DF] space-y-1.5 text-xs">
+              <div className="flex items-center justify-between text-[#78716C]">
+                <span>Engine Complexity</span>
+                <span className="font-mono font-bold text-[#1E1E24]">O(n log n)</span>
+              </div>
+              <div className="flex items-center justify-between text-[#78716C]">
+                <span>Docker Sandbox</span>
+                <span className="text-[#10B981] font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  Verified
+                </span>
+              </div>
+            </div>
+
+            {/* The Big Coral Action Button (matching "Place an order" button in Purr'Coffee!) */}
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onTabChange("Chat")}
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#FF7A50] hover:bg-[#FF6633] active:bg-[#E65F35] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#FF7A50]/25 transition-all cursor-pointer"
+            >
+              <Wand2 className="w-4 h-4" />
+              <span>Ask AI Mentor About Selection</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+            </motion.button>
+          </div>
+        )}
       </div>
-    </div>
+    </aside>
   );
 }
 
 function AnalyzingAnimation() {
   const steps = [
-    "AI analyzing code...",
-    "Scanning functions...",
-    "Detecting algorithms...",
-    "Generating explanation...",
+    "Parsing AST tokens...",
+    "Scanning functions & recursion...",
+    "Validating complexity bounds...",
+    "Composing explanation...",
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Loader2 className="w-5 h-5 text-[#22c55e] animate-spin" />
-        <span className="text-sm text-[#e5e7eb]">Analyzing your code...</span>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 py-2">
+      <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#FFF1EB] border border-[#FFD9CA] text-[#FF7A50]">
+        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+        <span className="text-xs font-bold">Analyzing your code...</span>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 p-1">
         {steps.map((step, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.5 }}
-            className="flex items-center gap-2 text-sm text-[#9ca3af]"
+            transition={{ delay: index * 0.2 }}
+            className="flex items-center gap-2.5 text-xs text-[#78716C]"
           >
-            <div className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-            {step}
+            <div className="w-1.5 h-1.5 rounded-full bg-[#FF7A50]" />
+            <span>{step}</span>
           </motion.div>
         ))}
       </div>
 
-      <div className="mt-6 p-4 bg-[#1f2937] rounded-lg border border-[#374151]">
-        <div className="space-y-2">
-          <div className="h-3 bg-[#374151] rounded animate-pulse" style={{ width: "80%" }} />
-          <div className="h-3 bg-[#374151] rounded animate-pulse" style={{ width: "60%" }} />
-          <div className="h-3 bg-[#374151] rounded animate-pulse" style={{ width: "90%" }} />
-        </div>
+      <div className="p-4 bg-white rounded-2xl border border-[#ECE8DF] space-y-2 shadow-xs">
+        <div className="h-2.5 bg-[#F5F4F0] rounded-full animate-pulse w-3/4" />
+        <div className="h-2.5 bg-[#F5F4F0] rounded-full animate-pulse w-1/2" />
+        <div className="h-2.5 bg-[#F5F4F0] rounded-full animate-pulse w-5/6" />
       </div>
     </motion.div>
   );
@@ -209,43 +295,57 @@ function AnalyzingAnimation() {
 
 function CommentsTab({ comments, code }: { comments: LiveComment[]; code: string }) {
   if (!code) {
-    return <div className="text-[#6b7280] text-sm italic">Write some code to see real-time line comments...</div>;
+    return (
+      <div className="text-[#A8A29E] text-xs italic text-center py-8">
+        Write or open code in the editor to view line-by-line comments.
+      </div>
+    );
   }
 
   if (comments.length === 0) {
-    return <div className="text-[#6b7280] text-sm italic">No comments yet. Pause briefly and the backend will analyze the file.</div>;
+    return (
+      <div className="text-[#A8A29E] text-xs italic text-center py-8">
+        No comments yet. Code looks clean!
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="text-xs text-[#9ca3af] mb-3">Real-time line-by-line analysis powered by the backend.</div>
+    <div className="space-y-2.5">
+      <div className="text-[11px] font-semibold text-[#A8A29E] uppercase tracking-wide mb-1">
+        Active File Annotations ({comments.length})
+      </div>
       {comments.map((comment, index) => {
-        const bgColor =
-          comment.type === "info"
-            ? "bg-[#1e3a8a]/20 border-[#3b82f6]"
-            : comment.type === "important"
-              ? "bg-[#14532d]/20 border-[#22c55e]"
-              : "bg-[#7f1d1d]/20 border-[#ef4444]";
-
-        const textColor =
-          comment.type === "info"
-            ? "text-[#3b82f6]"
-            : comment.type === "important"
-              ? "text-[#22c55e]"
-              : "text-[#ef4444]";
+        const isImportant = comment.type === "important";
+        const isError = comment.type === "error" || comment.type === "warning";
 
         return (
           <motion.div
             key={`${comment.line}-${index}`}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.08 }}
-            className={`p-3 rounded-lg border ${bgColor} transition-all`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="p-3.5 rounded-2xl bg-white border border-[#ECE8DF] hover:border-[#FF7A50]/40 transition-all shadow-xs"
           >
-            <div className="flex items-start gap-2">
-              <span className={`text-xs font-mono font-bold ${textColor} min-w-[3rem]`}>Line {comment.line}</span>
-              <span className="text-sm text-[#d1d5db]">{comment.comment}</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="px-2 py-0.5 rounded-md bg-[#F5F4F0] text-[#78716C] font-mono text-[11px] font-bold">
+                Line {comment.line}
+              </span>
+              <span
+                className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${
+                  isError
+                    ? "bg-[#FEF2F2] text-[#DC2626]"
+                    : isImportant
+                    ? "bg-[#FFF1EB] text-[#FF7A50]"
+                    : "bg-[#F0FDF4] text-[#16A34A]"
+                }`}
+              >
+                {comment.type}
+              </span>
             </div>
+            <p className="text-xs text-[#1E1E24] leading-relaxed font-medium">
+              {comment.comment}
+            </p>
           </motion.div>
         );
       })}
@@ -272,80 +372,78 @@ function ChatTab({
 
   if (!messages.length && !isLoading && !errorMessage) {
     return (
-      <div className="text-[#6b7280] text-sm italic">
-        Ask the mentor anything about the current file, edge cases, bugs, complexity, or how to improve it.
+      <div className="text-center py-8 space-y-2">
+        <div className="text-xs font-bold text-[#1E1E24]">Start a Mentor Session</div>
+        <p className="text-xs text-[#A8A29E] max-w-xs mx-auto">
+          Ask questions about complexity, optimal algorithms, edge cases, or how to refactor your code.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {messages.map((message, index) => (
-        <motion.div
-          key={`${message.role}-${index}-${(message.content || "").slice(0, 24)}`}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`rounded-2xl border p-4 ${
-            message.role === "user"
-              ? "ml-8 border-[#1d4ed8]/40 bg-[#1e3a8a]/20"
-              : "mr-4 border-[#374151] bg-[#1f2937]"
-          }`}
-        >
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-[#9ca3af]">
-            {message.role === "user" ? "You" : "AI Mentor"}
-          </div>
-          {message.role === "assistant" ? (
-            <ResponseRenderer content={message.content || ""} />
-          ) : (
-            <p className="text-sm text-[#e5e7eb]">{message.content}</p>
-          )}
+    <div className="space-y-3.5">
+      {messages.map((message, index) => {
+        const isUser = message.role === "user";
 
-          {message.citations?.length ? (
-            <div className="mt-3 space-y-1">
-              {message.citations.map((citation, citationIndex) => (
-                <div key={citationIndex} className="text-xs text-[#9ca3af]">
-                  {String(citation.label ?? "Reference")}:
-                  {" "}
-                  {String(citation.reason ?? "")}
-                </div>
-              ))}
+        return (
+          <motion.div
+            key={`${message.role}-${index}-${(message.content || "").slice(0, 24)}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`rounded-2xl p-3.5 text-xs ${
+              isUser
+                ? "ml-8 bg-[#FF7A50] text-white shadow-sm shadow-[#FF7A50]/20 rounded-tr-sm"
+                : "mr-4 bg-white border border-[#ECE8DF] text-[#1E1E24] shadow-xs rounded-tl-sm space-y-2"
+            }`}
+          >
+            <div
+              className={`text-[10px] font-extrabold uppercase tracking-wider mb-1 ${
+                isUser ? "text-white/80" : "text-[#A8A29E]"
+              }`}
+            >
+              {isUser ? "You" : "AI Mentor"}
             </div>
-          ) : null}
 
-          {message.followUps?.length ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {message.followUps.map((followUp) => (
-                <button
-                  key={followUp}
-                  onClick={() => onFollowUpClick(followUp)}
-                  className="rounded-full border border-[#22c55e]/30 bg-[#14532d]/20 px-3 py-1 text-xs text-[#86efac] hover:bg-[#14532d]/35 transition-colors"
-                >
-                  {followUp}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </motion.div>
-      ))}
+            {isUser ? (
+              <p className="font-medium leading-relaxed">{message.content}</p>
+            ) : (
+              <ResponseRenderer content={message.content || ""} />
+            )}
 
-      {errorMessage ? (
-        <div className="rounded-lg border border-[#ef4444]/40 bg-[#7f1d1d]/30 p-4 text-sm text-[#fecaca]">
-          {errorMessage}
-        </div>
-      ) : null}
+            {/* Follow up pills */}
+            {message.followUps?.length ? (
+              <div className="mt-2.5 pt-2 border-t border-[#ECE8DF] flex flex-wrap gap-1.5">
+                {message.followUps.map((followUp) => (
+                  <button
+                    key={followUp}
+                    onClick={() => onFollowUpClick(followUp)}
+                    className="rounded-full border border-[#FFD9CA] bg-[#FFF1EB] hover:bg-[#FFE4D6] px-2.5 py-1 text-[11px] font-semibold text-[#FF7A50] transition-colors cursor-pointer"
+                  >
+                    {followUp}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </motion.div>
+        );
+      })}
 
       {isLoading ? (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mr-4 rounded-2xl border border-[#374151] bg-[#1f2937] p-4"
+          className="mr-6 rounded-2xl bg-white border border-[#ECE8DF] p-3 text-xs flex items-center gap-2 text-[#78716C] shadow-xs"
         >
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-[#9ca3af]">AI Mentor</div>
-          <div className="flex items-center gap-2 text-sm text-[#d1d5db]">
-            <Loader2 className="h-4 w-4 animate-spin text-[#22c55e]" />
-            Thinking about your code...
-          </div>
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FF7A50]" />
+          <span>Generating response with Groq LLaMA 3.3...</span>
         </motion.div>
+      ) : null}
+
+      {errorMessage ? (
+        <div className="p-3 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] text-xs">
+          {errorMessage}
+        </div>
       ) : null}
 
       <div ref={messagesEndRef} />
@@ -357,28 +455,29 @@ function ResponseRenderer({ content }: { content: string }) {
   const lines = (content || "").split("\n");
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 text-xs leading-relaxed text-[#1E1E24]">
       {lines.map((line, index) => {
         if (line.startsWith("# ")) {
           return (
-            <h2 key={index} className="text-lg font-bold text-[#e5e7eb] mb-2">
+            <h3 key={index} className="text-sm font-extrabold text-[#1E1E24] mt-2 mb-1">
               {line.substring(2)}
-            </h2>
+            </h3>
           );
         }
 
         if (line.startsWith("**") && line.endsWith("**")) {
           return (
-            <h3 key={index} className="font-semibold text-[#e5e7eb] mt-3">
+            <h4 key={index} className="font-bold text-[#FF7A50] mt-2">
               {line.substring(2, line.length - 2)}
-            </h3>
+            </h4>
           );
         }
 
-        if (line.startsWith("- ") || line.startsWith("Warning") || line.startsWith("Fix") || line.startsWith("Related")) {
+        if (line.startsWith("- ")) {
           return (
-            <div key={index} className="text-sm text-[#d1d5db] ml-2">
-              {line}
+            <div key={index} className="flex items-start gap-1.5 ml-2 text-[#44403C]">
+              <span className="text-[#FF7A50] font-bold">•</span>
+              <span>{line.substring(2)}</span>
             </div>
           );
         }
@@ -386,15 +485,18 @@ function ResponseRenderer({ content }: { content: string }) {
         if (line.includes("`") && line.includes("`")) {
           const parts = line.split("`");
           return (
-            <div key={index} className="text-sm text-[#d1d5db]">
+            <div key={index} className="text-[#44403C]">
               {parts.map((part, partIndex) =>
                 partIndex % 2 === 1 ? (
-                  <code key={partIndex} className="px-2 py-0.5 bg-[#1f2937] rounded text-[#22c55e] font-mono text-xs">
+                  <code
+                    key={partIndex}
+                    className="px-1.5 py-0.5 bg-[#F5F4F0] border border-[#ECE8DF] rounded text-[#FF7A50] font-mono text-[11px] font-semibold"
+                  >
                     {part}
                   </code>
                 ) : (
                   <span key={partIndex}>{part}</span>
-                ),
+                )
               )}
             </div>
           );
@@ -402,7 +504,7 @@ function ResponseRenderer({ content }: { content: string }) {
 
         if (line.trim()) {
           return (
-            <p key={index} className="text-sm text-[#d1d5db]">
+            <p key={index} className="text-[#44403C]">
               {line}
             </p>
           );

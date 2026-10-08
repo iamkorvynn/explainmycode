@@ -17,7 +17,7 @@ import {
   FileCode,
   Sparkles,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 
 export interface ExecutionStats {
   timeMs?: number | null;
@@ -62,14 +62,12 @@ export function Terminal({
   const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when output changes
   useEffect(() => {
     if (scrollRef.current && activeTab === "output") {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [output, activeTab]);
 
-  // Copy output to clipboard
   const handleCopy = async () => {
     if (!output.length) return;
     try {
@@ -81,7 +79,6 @@ export function Terminal({
     }
   };
 
-  // Keyboard shortcut Ctrl+Enter or Cmd+Enter to run code
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -104,63 +101,65 @@ export function Terminal({
   );
 
   return (
-    <div className="h-full bg-[#070b14] flex flex-col font-mono border-t border-[#1e293b] text-[#e2e8f0] select-text">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#1e293b] bg-[#0c1220] select-none">
+    <div className="h-full bg-[#FAF9F7] flex flex-col font-sans border-t border-[#ECE8DF] select-text transition-colors">
+      {/* Stitch Top Header Bar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[#ECE8DF] bg-[#FFFFFF] select-none">
         {/* Left: Tab Navigation */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setActiveTab("output")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-              activeTab === "output"
-                ? "bg-[#1e293b] text-[#22c55e] border border-[#22c55e]/30 shadow-sm"
-                : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#131d31]"
-            }`}
-          >
-            <TerminalIcon className="w-3.5 h-3.5" />
-            <span>Output</span>
-            {output.length > 0 && (
-              <span className="ml-1 text-[10px] px-1.5 py-0.2 rounded-full bg-[#1e293b] text-[#94a3b8]">
-                {output.length}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 p-0.5 bg-[#F5F4F0] rounded-xl border border-[#ECE8DF]">
+            <button
+              onClick={() => setActiveTab("output")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "output"
+                  ? "bg-[#FF7A50] text-white shadow-xs"
+                  : "text-[#78716C] hover:text-[#1E1E24]"
+              }`}
+            >
+              <TerminalIcon className="w-3.5 h-3.5" />
+              <span>Console</span>
+              {output.length > 0 && (
+                <span className={`ml-1 text-[10px] px-1.5 rounded-full ${activeTab === "output" ? "bg-white/20 text-white" : "bg-[#ECE8DF] text-[#78716C]"}`}>
+                  {output.length}
+                </span>
+              )}
+            </button>
 
-          <button
-            onClick={() => setActiveTab("stdin")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-              activeTab === "stdin"
-                ? "bg-[#1e293b] text-[#38bdf8] border border-[#38bdf8]/30 shadow-sm"
-                : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#131d31]"
-            }`}
-          >
-            <CornerDownLeft className="w-3.5 h-3.5" />
-            <span>STDIN</span>
-            {stdin.trim().length > 0 && (
-              <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8]" />
-            )}
-          </button>
+            <button
+              onClick={() => setActiveTab("stdin")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "stdin"
+                  ? "bg-[#FF7A50] text-white shadow-xs"
+                  : "text-[#78716C] hover:text-[#1E1E24]"
+              }`}
+            >
+              <CornerDownLeft className="w-3.5 h-3.5" />
+              <span>STDIN</span>
+              {stdin.trim().length > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white" />
+              )}
+            </button>
 
-          <button
-            onClick={() => setActiveTab("stats")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-              activeTab === "stats"
-                ? "bg-[#1e293b] text-[#a855f7] border border-[#a855f7]/30 shadow-sm"
-                : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[#131d31]"
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Stats</span>
-          </button>
+            <button
+              onClick={() => setActiveTab("stats")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "stats"
+                  ? "bg-[#FF7A50] text-white shadow-xs"
+                  : "text-[#78716C] hover:text-[#1E1E24]"
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Diagnostics</span>
+            </button>
+          </div>
 
           {/* Active Provider Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 ml-3 pl-3 border-l border-[#1e293b] text-[11px] text-[#64748b]">
+          <div className="hidden sm:flex items-center gap-2 ml-2 pl-3 border-l border-[#ECE8DF] text-xs text-[#78716C]">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22c55e] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22c55e]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
             </span>
-            <span className="text-[#94a3b8] font-medium">OnlineCompiler.io</span>
-            <span className="text-[10px] text-[#475569]">· Sandboxed Docker</span>
+            <span className="text-[#1E1E24] font-semibold text-[11px]">OnlineCompiler.io</span>
+            <span className="text-[10px] text-[#A8A29E]">· Docker Sandbox</span>
           </div>
         </div>
 
@@ -168,13 +167,13 @@ export function Terminal({
         <div className="flex items-center gap-1.5">
           {/* Quick Stats Pill */}
           {executionStats?.timeMs != null && (
-            <div className="hidden md:flex items-center gap-2 px-2 py-0.5 rounded bg-[#131d31] border border-[#1e293b] text-[10px] text-[#94a3b8]">
-              <span className="flex items-center gap-1 text-[#22c55e]">
+            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#F5F4F0] border border-[#ECE8DF] text-[10px] font-mono">
+              <span className="flex items-center gap-1 text-[#10B981] font-semibold">
                 <Clock className="w-2.5 h-2.5" />
                 {executionStats.timeMs}ms
               </span>
               {executionStats.memoryKb != null && (
-                <span className="flex items-center gap-1 text-[#38bdf8]">
+                <span className="flex items-center gap-1 text-[#3B82F6] font-semibold">
                   <Cpu className="w-2.5 h-2.5" />
                   {(executionStats.memoryKb / 1024).toFixed(1)}MB
                 </span>
@@ -190,7 +189,7 @@ export function Terminal({
               onClick={onRunCode}
               disabled={isLoading}
               title="Run code (Ctrl+Enter)"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-gradient-to-r from-[#16a34a] to-[#22c55e] hover:from-[#15803d] hover:to-[#16a34a] text-white text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF7A50] hover:bg-[#FF6633] text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
             >
               {isLoading ? (
                 <>
@@ -200,7 +199,7 @@ export function Terminal({
               ) : (
                 <>
                   <Play className="w-3 h-3 fill-white" />
-                  <span>Run</span>
+                  <span>Execute</span>
                 </>
               )}
             </motion.button>
@@ -211,9 +210,9 @@ export function Terminal({
             onClick={handleCopy}
             disabled={!output.length}
             title="Copy output"
-            className="p-1.5 rounded hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#e2e8f0] transition-colors disabled:opacity-40"
+            className="p-1.5 rounded-lg bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] transition-colors disabled:opacity-40 cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-[#22c55e]" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
 
           {/* Clear Button */}
@@ -221,7 +220,7 @@ export function Terminal({
             onClick={onClear}
             disabled={!output.length}
             title="Clear terminal"
-            className="p-1.5 rounded hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#e2e8f0] transition-colors disabled:opacity-40"
+            className="p-1.5 rounded-lg bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] transition-colors disabled:opacity-40 cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -231,7 +230,7 @@ export function Terminal({
             <button
               onClick={onToggleMaximize}
               title={isMaximized ? "Restore panel" : "Maximize panel"}
-              className="p-1.5 rounded hover:bg-[#1e293b] text-[#94a3b8] hover:text-[#e2e8f0] transition-colors"
+              className="p-1.5 rounded-lg bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] transition-colors cursor-pointer"
             >
               {isMaximized ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </button>
@@ -242,7 +241,7 @@ export function Terminal({
             <button
               onClick={onClose}
               title="Close terminal"
-              className="p-1.5 rounded hover:bg-[#ef4444]/20 hover:text-[#ef4444] text-[#94a3b8] transition-colors"
+              className="p-1.5 rounded-lg bg-[#F5F4F0] hover:bg-[#FEE2E2] hover:text-[#EF4444] text-[#78716C] border border-[#ECE8DF] transition-colors cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -250,34 +249,33 @@ export function Terminal({
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-hidden relative">
+      {/* Main Content Area: High-contrast sleek code container */}
+      <div className="flex-1 overflow-hidden p-2">
         {/* Tab 1: Output / Console */}
         {activeTab === "output" && (
-          <div className="h-full flex flex-col">
+          <div className="h-full rounded-2xl bg-[#0F141C] border border-[#1E2530] flex flex-col overflow-hidden shadow-inner font-mono">
             <div
               ref={scrollRef}
-              className="flex-1 overflow-y-auto p-3 space-y-1 font-mono text-xs leading-relaxed select-text scrollbar-thin scrollbar-thumb-[#1e293b] scrollbar-track-transparent"
+              className="flex-1 overflow-y-auto p-4 space-y-1 text-xs leading-relaxed select-text"
             >
               {output.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#64748b]">
-                  <div className="w-12 h-12 rounded-xl bg-[#0f172a] border border-[#1e293b] flex items-center justify-center mb-3 text-[#22c55e]/80">
-                    <TerminalIcon className="w-6 h-6" />
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#64748B]">
+                  <div className="w-10 h-10 rounded-2xl bg-[#17202E] border border-[#232E42] flex items-center justify-center mb-2.5 text-[#FF7A50]">
+                    <TerminalIcon className="w-5 h-5" />
                   </div>
-                  <h4 className="text-sm font-semibold text-[#cbd5e1] mb-1">
-                    Terminal Ready
+                  <h4 className="text-xs font-bold text-[#E2E8F0] mb-1 font-sans">
+                    Docker Sandbox Connected
                   </h4>
-                  <p className="text-xs text-[#64748b] max-w-sm mb-4 leading-normal">
-                    Execution powered by <span className="text-[#38bdf8]">OnlineCompiler.io</span>.
-                    Supports Python, TypeScript, C++, and Java in sandboxed containers.
+                  <p className="text-[11px] text-[#94A3B8] max-w-sm mb-3 font-sans leading-normal">
+                    Real-time execution ready via OnlineCompiler.io. Click Execute or press Ctrl+Enter.
                   </p>
                   {onRunCode && (
                     <button
                       onClick={onRunCode}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1e293b] hover:bg-[#334155] border border-[#334155] text-xs text-[#e2e8f0] font-medium transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1E2530] hover:bg-[#2A3445] border border-[#2A3445] text-xs text-[#E2E8F0] font-sans font-semibold transition-all cursor-pointer"
                     >
-                      <Play className="w-3 h-3 text-[#22c55e] fill-[#22c55e]" />
-                      <span>Run Code (Ctrl+Enter)</span>
+                      <Play className="w-3 h-3 text-[#FF7A50] fill-[#FF7A50]" />
+                      <span>Execute Program (Ctrl+Enter)</span>
                     </button>
                   )}
                 </div>
@@ -294,14 +292,14 @@ export function Terminal({
                   return (
                     <div
                       key={idx}
-                      className={`whitespace-pre-wrap break-words font-mono ${
+                      className={`whitespace-pre-wrap break-words ${
                         isCommand
-                          ? "text-[#38bdf8] font-semibold py-0.5"
+                          ? "text-[#38BDF8] font-bold py-0.5"
                           : isSuccess
-                          ? "text-[#22c55e] font-semibold py-0.5 border-t border-[#1e293b]/60 mt-1 pt-1"
+                          ? "text-[#34D399] font-bold py-0.5"
                           : isErr
-                          ? "text-[#f87171] bg-[#f87171]/10 px-1.5 py-0.5 rounded border border-[#f87171]/20 my-0.5"
-                          : "text-[#f1f5f9]"
+                          ? "text-[#F87171] bg-[#F87171]/10 px-2 py-0.5 rounded border border-[#F87171]/20 my-0.5"
+                          : "text-[#E2E8F0]"
                       }`}
                     >
                       {line}
@@ -312,16 +310,16 @@ export function Terminal({
 
               {/* Running Spinner */}
               {isLoading && (
-                <div className="flex items-center gap-2 py-1 text-[#38bdf8] text-xs">
-                  <div className="w-3 h-3 border-2 border-[#38bdf8]/30 border-t-[#38bdf8] rounded-full animate-spin" />
-                  <span>Executing in sandboxed container...</span>
+                <div className="flex items-center gap-2 py-1 text-[#FF7A50] text-xs font-sans">
+                  <div className="w-3 h-3 border-2 border-[#FF7A50]/30 border-t-[#FF7A50] rounded-full animate-spin" />
+                  <span>Executing in isolated sandbox container...</span>
                 </div>
               )}
             </div>
 
-            {/* Sticky Quick-Stdin Input at Bottom of Output */}
-            <div className="border-t border-[#1e293b] bg-[#0c1220] px-3 py-1.5 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-[#38bdf8] uppercase tracking-wider flex items-center gap-1">
+            {/* Sticky STDIN Input Bar */}
+            <div className="border-t border-[#1E2530] bg-[#141A24] px-3.5 py-1.5 flex items-center gap-2">
+              <span className="text-[10px] font-bold text-[#FF7A50] uppercase tracking-wider flex items-center gap-1">
                 <CornerDownLeft className="w-3 h-3" />
                 STDIN
               </span>
@@ -329,18 +327,18 @@ export function Terminal({
                 type="text"
                 value={stdin}
                 onChange={(e) => onStdinChange(e.target.value)}
-                placeholder="Type input for programs using input(), cin, or scanf... (press Enter or Run)"
+                placeholder="Send input for input(), cin, or scanf..."
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && onRunCode && !isLoading) {
                     onRunCode();
                   }
                 }}
-                className="flex-1 bg-[#070b14] border border-[#1e293b] rounded px-2.5 py-1 text-xs text-[#e2e8f0] placeholder-[#475569] focus:outline-none focus:border-[#38bdf8] transition-colors"
+                className="flex-1 bg-transparent border-0 px-2 py-1 text-xs text-[#F1F5F9] placeholder-[#64748B] focus:outline-none"
               />
               {stdin && (
                 <button
                   onClick={() => onStdinChange("")}
-                  className="text-[10px] text-[#64748b] hover:text-[#94a3b8] px-1"
+                  className="text-[10px] text-[#94A3B8] hover:text-white px-1.5 py-0.5 rounded bg-[#1E2530] cursor-pointer"
                 >
                   Clear
                 </button>
@@ -351,34 +349,34 @@ export function Terminal({
 
         {/* Tab 2: STDIN Full Editor */}
         {activeTab === "stdin" && (
-          <div className="h-full p-4 flex flex-col bg-[#070b14] space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#94a3b8]">
-              <div className="flex items-center gap-1.5 font-medium">
-                <CornerDownLeft className="w-4 h-4 text-[#38bdf8]" />
+          <div className="h-full rounded-2xl bg-[#FFFFFF] border border-[#ECE8DF] p-4 flex flex-col space-y-2.5">
+            <div className="flex items-center justify-between text-xs text-[#78716C]">
+              <div className="flex items-center gap-1.5 font-bold text-[#1E1E24]">
+                <CornerDownLeft className="w-4 h-4 text-[#FF7A50]" />
                 <span>Standard Input (STDIN)</span>
               </div>
-              <span className="text-[11px] text-[#64748b]">
-                Passed directly to the process standard input stream
+              <span className="text-[11px] text-[#A8A29E]">
+                Streamed directly to program stdin during execution
               </span>
             </div>
 
             <textarea
               value={stdin}
               onChange={(e) => onStdinChange(e.target.value)}
-              placeholder="Paste or type multi-line test input here...&#10;Line 1&#10;Line 2&#10;Line 3"
-              className="flex-1 w-full bg-[#0c1220] border border-[#1e293b] rounded-lg p-3 text-xs text-[#f1f5f9] placeholder-[#475569] font-mono focus:outline-none focus:border-[#38bdf8] transition-colors resize-none"
+              placeholder="Paste or type multi-line test inputs here...&#10;Line 1&#10;Line 2&#10;Line 3"
+              className="flex-1 w-full bg-[#F7F6F2] border border-[#ECE8DF] focus:border-[#FF7A50]/50 rounded-xl p-3 text-xs text-[#1E1E24] placeholder-[#A8A29E] font-mono focus:outline-none resize-none transition-all shadow-inner"
             />
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-[#64748b]">
+              <span className="text-[11px] text-[#A8A29E]">
                 {stdin.length} characters · {stdin.split("\n").length} line(s)
               </span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => onStdinChange("")}
-                  className="px-2.5 py-1 rounded bg-[#1e293b] hover:bg-[#334155] text-xs text-[#94a3b8] hover:text-[#e2e8f0] transition-colors"
+                  className="px-3 py-1 rounded-lg bg-[#F5F4F0] hover:bg-[#EBE8E0] text-xs font-semibold text-[#78716C] transition-colors cursor-pointer"
                 >
-                  Clear STDIN
+                  Clear Input
                 </button>
                 {onRunCode && (
                   <button
@@ -387,7 +385,7 @@ export function Terminal({
                       onRunCode();
                     }}
                     disabled={isLoading}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-1 rounded-full bg-[#FF7A50] hover:bg-[#FF6633] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                   >
                     <Play className="w-3 h-3 fill-white" />
                     <span>Run With Input</span>
@@ -400,91 +398,77 @@ export function Terminal({
 
         {/* Tab 3: Execution Stats */}
         {activeTab === "stats" && (
-          <div className="h-full p-4 overflow-y-auto bg-[#070b14]">
+          <div className="h-full rounded-2xl bg-[#FFFFFF] border border-[#ECE8DF] p-4 overflow-y-auto">
             <div className="max-w-xl mx-auto space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-[#1e293b]">
+              <div className="flex items-center justify-between pb-2 border-b border-[#ECE8DF]">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#a855f7]" />
-                  <h4 className="text-sm font-semibold text-[#f1f5f9]">
-                    Execution Performance & Diagnostics
+                  <Activity className="w-4 h-4 text-[#FF7A50]" />
+                  <h4 className="text-sm font-bold text-[#1E1E24]">
+                    Sandbox Metrics & Performance
                   </h4>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/30 font-medium">
-                  OnlineCompiler.io Active
+                <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#FFF1EB] text-[#FF7A50] border border-[#FFD9CA] font-bold">
+                  OnlineCompiler.io Engine
                 </span>
               </div>
 
               {executionStats ? (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-[#0c1220] border border-[#1e293b]">
-                    <div className="flex items-center gap-1.5 text-xs text-[#94a3b8] mb-1">
-                      <Clock className="w-3.5 h-3.5 text-[#22c55e]" />
+                  <div className="p-3.5 rounded-xl bg-[#FBFBFA] border border-[#ECE8DF]">
+                    <div className="flex items-center gap-1.5 text-xs text-[#78716C] mb-1">
+                      <Clock className="w-3.5 h-3.5 text-[#10B981]" />
                       <span>Execution Time</span>
                     </div>
-                    <div className="text-lg font-bold text-[#f1f5f9]">
+                    <div className="text-lg font-bold text-[#1E1E24]">
                       {executionStats.timeMs != null ? `${executionStats.timeMs} ms` : "N/A"}
                     </div>
-                    <span className="text-[10px] text-[#64748b]">Real elapsed time in container</span>
+                    <span className="text-[10px] text-[#A8A29E]">Real elapsed container time</span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#0c1220] border border-[#1e293b]">
-                    <div className="flex items-center gap-1.5 text-xs text-[#94a3b8] mb-1">
-                      <Cpu className="w-3.5 h-3.5 text-[#38bdf8]" />
+                  <div className="p-3.5 rounded-xl bg-[#FBFBFA] border border-[#ECE8DF]">
+                    <div className="flex items-center gap-1.5 text-xs text-[#78716C] mb-1">
+                      <Cpu className="w-3.5 h-3.5 text-[#3B82F6]" />
                       <span>Memory Used</span>
                     </div>
-                    <div className="text-lg font-bold text-[#f1f5f9]">
+                    <div className="text-lg font-bold text-[#1E1E24]">
                       {executionStats.memoryKb != null
                         ? `${(executionStats.memoryKb / 1024).toFixed(1)} MB`
                         : "N/A"}
                     </div>
-                    <span className="text-[10px] text-[#64748b]">Max resident memory set</span>
+                    <span className="text-[10px] text-[#A8A29E]">Max resident memory</span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#0c1220] border border-[#1e293b]">
-                    <div className="flex items-center gap-1.5 text-xs text-[#94a3b8] mb-1">
+                  <div className="p-3.5 rounded-xl bg-[#FBFBFA] border border-[#ECE8DF]">
+                    <div className="flex items-center gap-1.5 text-xs text-[#78716C] mb-1">
                       {hasError ? (
-                        <AlertCircle className="w-3.5 h-3.5 text-[#f87171]" />
+                        <AlertCircle className="w-3.5 h-3.5 text-[#EF4444]" />
                       ) : (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#22c55e]" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
                       )}
                       <span>Exit Status</span>
                     </div>
-                    <div className="text-lg font-bold text-[#f1f5f9]">
+                    <div className="text-lg font-bold text-[#1E1E24]">
                       {executionStats.exitStatus ?? "Success"}
                     </div>
-                    <span className="text-[10px] text-[#64748b]">Process return code</span>
+                    <span className="text-[10px] text-[#A8A29E]">Container exit code</span>
                   </div>
 
-                  <div className="p-3 rounded-lg bg-[#0c1220] border border-[#1e293b]">
-                    <div className="flex items-center gap-1.5 text-xs text-[#94a3b8] mb-1">
-                      <FileCode className="w-3.5 h-3.5 text-[#a855f7]" />
-                      <span>Engine & Environment</span>
+                  <div className="p-3.5 rounded-xl bg-[#FBFBFA] border border-[#ECE8DF]">
+                    <div className="flex items-center gap-1.5 text-xs text-[#78716C] mb-1">
+                      <FileCode className="w-3.5 h-3.5 text-[#FF7A50]" />
+                      <span>Runtime Environment</span>
                     </div>
-                    <div className="text-sm font-bold text-[#f1f5f9]">
+                    <div className="text-sm font-bold text-[#1E1E24]">
                       {executionStats.provider ?? "compiler-io"}
                     </div>
-                    <span className="text-[10px] text-[#64748b]">Isolated container execution</span>
+                    <span className="text-[10px] text-[#A8A29E]">Dedicated Docker sandbox</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-[#64748b] text-xs">
-                  Run your code to capture execution timing and memory metrics.
+                <div className="text-center py-8 text-[#A8A29E] text-xs">
+                  Execute your code to display container timing and memory benchmarks.
                 </div>
               )}
-
-              {/* Supported Languages Info */}
-              <div className="p-3 rounded-lg bg-[#0c1220]/60 border border-[#1e293b] text-xs space-y-1.5">
-                <div className="font-semibold text-[#cbd5e1] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#38bdf8]" />
-                  <span>Compiler Configuration</span>
-                </div>
-                <p className="text-[11px] text-[#94a3b8]">
-                  • <strong className="text-[#f1f5f9]">Python:</strong> Python 3.14 (CPython runtime)<br />
-                  • <strong className="text-[#f1f5f9]">JavaScript / TypeScript:</strong> TypeScript / Deno runtime<br />
-                  • <strong className="text-[#f1f5f9]">C / C++:</strong> GCC 15 / G++ 15 compiler<br />
-                  • <strong className="text-[#f1f5f9]">Java:</strong> OpenJDK 25 runtime
-                </p>
-              </div>
             </div>
           </div>
         )}

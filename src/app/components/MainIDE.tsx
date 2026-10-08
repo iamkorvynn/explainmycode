@@ -487,33 +487,104 @@ export function MainIDE() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#020617] text-[#e5e7eb] flex flex-col overflow-hidden">
-      <TopNavBar
-        onRunCode={handleRunCode}
-        onToggleTerminal={() => setShowTerminal((prev) => !prev)}
-        showTerminal={showTerminal}
-        isTerminalRunning={isTerminalRunning}
-      />
+    <div className="h-screen w-screen bg-gradient-to-br from-[#F8D0B5] via-[#F5C29F] to-[#F3B58C] p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans">
+      {/* Organic Contour Curves Watermark (Stitch Purr'Coffee aesthetic) */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+        viewBox="0 0 1440 900"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M-100 200 C 300 100, 600 400, 1000 250 C 1300 120, 1500 350, 1600 450"
+          stroke="#FFFFFF"
+          strokeWidth="1.5"
+          strokeDasharray="4 8"
+        />
+        <path
+          d="M-50 450 C 250 300, 650 600, 1100 400 C 1400 280, 1550 500, 1650 600"
+          stroke="#FFFFFF"
+          strokeWidth="2"
+        />
+        <path
+          d="M-80 700 C 350 550, 750 850, 1200 650 C 1450 520, 1580 750, 1680 800"
+          stroke="#FFFFFF"
+          strokeWidth="1.5"
+        />
+      </svg>
 
-      <div className="flex-1 flex overflow-hidden">
-        <PanelGroup direction="horizontal">
-          <Panel defaultSize={18} minSize={12} maxSize={28}>
-            <FileExplorer
-              workspaceName={workspace?.name}
-              nodes={tree}
-              selectedFileId={selectedFileId}
-              isLoading={isWorkspaceLoading}
-              onCreateFile={() => void handleCreateFile()}
-              onSelectFile={selectFile}
-            />
-          </Panel>
+      {/* Decorative Stitch // Badge Watermark in background */}
+      <div className="absolute top-1 right-6 text-white/30 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
+        //
+      </div>
 
-          <PanelResizeHandle className="w-[1px] bg-[#1f2937] hover:bg-[#22c55e] transition-colors" />
+      {/* Floating Studio Canvas Container */}
+      <div className="relative z-10 h-full w-full bg-[#FFFFFF] rounded-[22px] md:rounded-[30px] border border-[#F0EDE6] shadow-[0_25px_80px_rgba(180,80,30,0.18)] flex flex-col overflow-hidden">
+        <TopNavBar
+          onRunCode={handleRunCode}
+          onToggleTerminal={() => setShowTerminal((prev) => !prev)}
+          showTerminal={showTerminal}
+          isTerminalRunning={isTerminalRunning}
+        />
 
-          <Panel defaultSize={52} minSize={30}>
-            {showTerminal ? (
-              <PanelGroup direction="vertical">
-                <Panel defaultSize={isTerminalMaximized ? 25 : 70} minSize={20}>
+        <div className="flex-1 flex overflow-hidden">
+          <PanelGroup direction="horizontal">
+            <Panel defaultSize={18} minSize={12} maxSize={28}>
+              <FileExplorer
+                workspaceName={workspace?.name}
+                nodes={tree}
+                selectedFileId={selectedFileId}
+                isLoading={isWorkspaceLoading}
+                onCreateFile={() => void handleCreateFile()}
+                onSelectFile={selectFile}
+              />
+            </Panel>
+
+            <PanelResizeHandle className="w-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-col-resize" />
+
+            <Panel defaultSize={52} minSize={30}>
+              {showTerminal ? (
+                <PanelGroup direction="vertical">
+                  <Panel defaultSize={isTerminalMaximized ? 25 : 68} minSize={20}>
+                    {selectedFile ? (
+                      <CodeEditor
+                        code={code}
+                        language={language}
+                        onChange={setCode}
+                        selectedLine={selectedLine}
+                        onLineClick={handleLineClick}
+                        filename={selectedFile?.name ?? "main.py"}
+                      />
+                    ) : (
+                      <WelcomeScreen
+                        onTrySampleCode={() => void handleTrySampleCode()}
+                        onOpenEditor={() => void handleOpenEditor()}
+                        isLoading={isWorkspaceLoading && !workspace}
+                      />
+                    )}
+                  </Panel>
+
+                  <PanelResizeHandle className="h-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-row-resize" />
+
+                  <Panel defaultSize={isTerminalMaximized ? 75 : 32} minSize={15}>
+                    <Terminal
+                      output={terminalOutput}
+                      onClear={() => setTerminalOutput([])}
+                      stdin={stdin}
+                      onStdinChange={setStdin}
+                      isLoading={isTerminalRunning}
+                      onRunCode={handleRunCode}
+                      onClose={() => setShowTerminal(false)}
+                      isMaximized={isTerminalMaximized}
+                      onToggleMaximize={() => setIsTerminalMaximized(!isTerminalMaximized)}
+                      language={language}
+                      filename={selectedFile?.name ?? "main.py"}
+                      executionStats={lastExecutionStats}
+                    />
+                  </Panel>
+                </PanelGroup>
+              ) : (
+                <div className="h-full">
                   {selectedFile ? (
                     <CodeEditor
                       code={code}
@@ -521,6 +592,7 @@ export function MainIDE() {
                       onChange={setCode}
                       selectedLine={selectedLine}
                       onLineClick={handleLineClick}
+                      filename={selectedFile?.name ?? "main.py"}
                     />
                   ) : (
                     <WelcomeScreen
@@ -529,68 +601,31 @@ export function MainIDE() {
                       isLoading={isWorkspaceLoading && !workspace}
                     />
                   )}
-                </Panel>
+                </div>
+              )}
+            </Panel>
 
-                <PanelResizeHandle className="h-[1px] bg-[#1f2937] hover:bg-[#22c55e] transition-colors" />
+            <PanelResizeHandle className="w-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-col-resize" />
 
-                <Panel defaultSize={isTerminalMaximized ? 75 : 30} minSize={15}>
-                  <Terminal
-                    output={terminalOutput}
-                    onClear={() => setTerminalOutput([])}
-                    stdin={stdin}
-                    onStdinChange={setStdin}
-                    isLoading={isTerminalRunning}
-                    onRunCode={handleRunCode}
-                    onClose={() => setShowTerminal(false)}
-                    isMaximized={isTerminalMaximized}
-                    onToggleMaximize={() => setIsTerminalMaximized(!isTerminalMaximized)}
-                    language={language}
-                    filename={selectedFile?.name ?? "main.py"}
-                    executionStats={lastExecutionStats}
-                  />
-                </Panel>
-              </PanelGroup>
-            ) : (
-              <div className="h-full">
-                {selectedFile ? (
-                  <CodeEditor
-                    code={code}
-                    language={language}
-                    onChange={setCode}
-                    selectedLine={selectedLine}
-                    onLineClick={handleLineClick}
-                  />
-                ) : (
-                  <WelcomeScreen
-                    onTrySampleCode={() => void handleTrySampleCode()}
-                    onOpenEditor={() => void handleOpenEditor()}
-                    isLoading={isWorkspaceLoading && !workspace}
-                  />
-                )}
-              </div>
-            )}
-          </Panel>
+            <Panel defaultSize={30} minSize={22} maxSize={42}>
+              <AIMentorPanel
+                activeTab={activeAITab}
+                onTabChange={handleTabChange}
+                response={mentorResponse}
+                comments={mentorComments}
+                chatMessages={chatMessages}
+                isLoading={isMentorLoading}
+                code={code}
+                errorMessage={mentorError}
+                onSendMessage={handleSendMentorMessage}
+                canChat={true}
+              />
+            </Panel>
+          </PanelGroup>
+        </div>
 
-          <PanelResizeHandle className="w-[1px] bg-[#1f2937] hover:bg-[#22c55e] transition-colors" />
-
-          <Panel defaultSize={30} minSize={22} maxSize={42}>
-            <AIMentorPanel
-              activeTab={activeAITab}
-              onTabChange={handleTabChange}
-              response={mentorResponse}
-              comments={mentorComments}
-              chatMessages={chatMessages}
-              isLoading={isMentorLoading}
-              code={code}
-              errorMessage={mentorError}
-              onSendMessage={handleSendMentorMessage}
-              canChat={true}
-            />
-          </Panel>
-        </PanelGroup>
+        <AmIOnTrackBar code={code} language={language} workspaceId={workspace?.id} filename={selectedFile?.name} />
       </div>
-
-      <AmIOnTrackBar code={code} language={language} workspaceId={workspace?.id} filename={selectedFile?.name} />
     </div>
   );
 }

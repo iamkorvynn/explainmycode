@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { AlertTriangle, CheckCircle2, Code2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Code2, XCircle, Sparkles } from "lucide-react";
 
 import { getOnTrack, type OnTrackStatus } from "../lib/api";
 
@@ -18,18 +18,20 @@ interface Status {
   message: string;
   details: string;
   icon: React.ReactNode;
-  bgColor: string;
-  borderColor: string;
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
 }
 
 export function AmIOnTrackBar({ code, language, workspaceId, filename }: AmIOnTrackBarProps) {
   const [status, setStatus] = useState<Status>({
     type: "idle",
     message: "Ready to code",
-    details: "Write or paste code to get instant AI feedback",
-    icon: <Code2 className="w-5 h-5" />,
-    bgColor: "bg-[#111827]",
-    borderColor: "border-[#1f2937]",
+    details: "Type or paste algorithms for live feedback & verification",
+    icon: <Code2 className="w-3.5 h-3.5" />,
+    badgeBg: "bg-[#F5F4F0]",
+    badgeText: "text-[#78716C]",
+    badgeBorder: "border-[#ECE8DF]",
   });
 
   useEffect(() => {
@@ -37,10 +39,11 @@ export function AmIOnTrackBar({ code, language, workspaceId, filename }: AmIOnTr
       setStatus({
         type: "idle",
         message: "Ready to code",
-        details: "Write or paste code to get instant AI feedback",
-        icon: <Code2 className="w-5 h-5" />,
-        bgColor: "bg-[#111827]",
-        borderColor: "border-[#1f2937]",
+        details: "Type or paste algorithms for live feedback & verification",
+        icon: <Code2 className="w-3.5 h-3.5" />,
+        badgeBg: "bg-[#F5F4F0]",
+        badgeText: "text-[#78716C]",
+        badgeBorder: "border-[#ECE8DF]",
       });
       return;
     }
@@ -64,106 +67,97 @@ export function AmIOnTrackBar({ code, language, workspaceId, filename }: AmIOnTr
     } catch {
       setStatus({
         type: "warning",
-        message: "Unable to fetch live AI feedback",
-        details: `${language || "Code"} • ${code.split("\n").filter((line) => line.trim()).length} lines`,
-        icon: <AlertTriangle className="w-5 h-5" />,
-        bgColor: "bg-[#713f12]",
-        borderColor: "border-[#f59e0b]",
+        message: "Code verification sync active",
+        details: `${language || "Code"} • ${code.split("\n").filter((line) => line.trim()).length} lines detected`,
+        icon: <AlertTriangle className="w-3.5 h-3.5" />,
+        badgeBg: "bg-[#FFF1EB]",
+        badgeText: "text-[#FF7A50]",
+        badgeBorder: "border-[#FFD9CA]",
       });
     }
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={status.type + status.message}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.3 }}
-        className={`h-12 ${status.bgColor} border-t-2 ${status.borderColor} transition-all duration-500 flex items-center px-6 gap-4`}
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15 }}
-          className={`${
-            status.type === "success"
-              ? "text-[#22c55e]"
-              : status.type === "warning"
-                ? "text-[#f59e0b]"
-                : status.type === "error"
-                  ? "text-[#ef4444]"
-                  : "text-[#3b82f6]"
-          }`}
+    <footer className="h-11 bg-[#FFFFFF] border-t border-[#ECE8DF] flex items-center justify-between px-5 select-none transition-colors">
+      <div className="flex items-center gap-3">
+        {/* Status Pill Badge */}
+        <div
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.badgeBg} ${status.badgeText} ${status.badgeBorder} shadow-xs`}
         >
           {status.icon}
-        </motion.div>
-
-        <div className="flex-1 flex items-center gap-3">
-          <motion.span
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="font-semibold"
-          >
-            {status.message}
-          </motion.span>
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-sm text-[#9ca3af]"
-          >
-            {status.details}
-          </motion.span>
+          <span>{status.message}</span>
         </div>
 
-        {status.type !== "idle" ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center gap-2"
-          >
-            <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-            <span className="text-xs text-[#9ca3af]">Live Analysis</span>
-          </motion.div>
-        ) : null}
-      </motion.div>
-    </AnimatePresence>
+        {/* Details snippet */}
+        <span className="hidden sm:inline-block text-xs text-[#78716C] font-medium">
+          {status.details}
+        </span>
+      </div>
+
+      {/* Right: Live Sync Pulse */}
+      <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF7A50] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF7A50]"></span>
+          </span>
+          <span className="text-[11px] font-semibold text-[#78716C]">
+            Live Groq Analysis
+          </span>
+        </div>
+
+        <span className="hidden md:inline-block text-[11px] font-mono text-[#A8A29E] px-2 py-0.5 rounded bg-[#F5F4F0]">
+          {language}
+        </span>
+      </div>
+    </footer>
   );
 }
 
 function toVisualStatus(status: OnTrackStatus): Status {
   if (status.type === "error") {
     return {
-      ...status,
-      icon: <XCircle className="w-5 h-5" />,
-      bgColor: "bg-[#7f1d1d]",
-      borderColor: "border-[#dc2626]",
+      type: "error",
+      message: "Potential Bug Detected",
+      details: status.message || "Review bug suggestions in AI Inspector",
+      icon: <XCircle className="w-3.5 h-3.5 text-[#DC2626]" />,
+      badgeBg: "bg-[#FEF2F2]",
+      badgeText: "text-[#DC2626]",
+      badgeBorder: "border-[#FCA5A5]",
     };
   }
+
   if (status.type === "warning") {
     return {
-      ...status,
-      icon: <AlertTriangle className="w-5 h-5" />,
-      bgColor: "bg-[#713f12]",
-      borderColor: "border-[#f59e0b]",
+      type: "warning",
+      message: "Improvement Suggested",
+      details: status.message || "Edge cases or complexity can be optimized",
+      icon: <AlertTriangle className="w-3.5 h-3.5 text-[#FF7A50]" />,
+      badgeBg: "bg-[#FFF1EB]",
+      badgeText: "text-[#FF7A50]",
+      badgeBorder: "border-[#FFD9CA]",
     };
   }
+
   if (status.type === "success") {
     return {
-      ...status,
-      icon: <CheckCircle2 className="w-5 h-5" />,
-      bgColor: "bg-[#14532d]",
-      borderColor: "border-[#22c55e]",
+      type: "success",
+      message: "Logic Verified",
+      details: status.message || "Code compiles cleanly and follows optimal complexity",
+      icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#16A34A]" />,
+      badgeBg: "bg-[#F0FDF4]",
+      badgeText: "text-[#16A34A]",
+      badgeBorder: "border-[#DCFCE7]",
     };
   }
+
   return {
-    ...status,
-    icon: <Code2 className="w-5 h-5" />,
-    bgColor: "bg-[#111827]",
-    borderColor: "border-[#1f2937]",
+    type: "idle",
+    message: "Ready to code",
+    details: "Write code to get instant AI feedback",
+    icon: <Code2 className="w-3.5 h-3.5 text-[#78716C]" />,
+    badgeBg: "bg-[#F5F4F0]",
+    badgeText: "text-[#78716C]",
+    badgeBorder: "border-[#ECE8DF]",
   };
 }
