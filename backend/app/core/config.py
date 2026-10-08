@@ -33,12 +33,12 @@ class Settings(BaseSettings):
     github_client_id: str = ""
     github_client_secret: str = ""
     execution_provider_order: Annotated[list[str], NoDecode] = Field(
-        default_factory=lambda: ["onecompiler", "compiler-io", "judge0"]
+        default_factory=lambda: ["compiler-io", "onecompiler", "judge0"]
     )
     onecompiler_base_url: str = "https://api.onecompiler.com/v1/run"
     onecompiler_api_key: str = ""
     compiler_io_base_url: str = "https://api.onlinecompiler.io/api/run-code-sync/"
-    compiler_io_api_key: str = ""
+    compiler_io_api_key: str = "1f31e6ce09536bc54d03db70536d6fbb"
     judge0_base_url: str = ""
     judge0_api_key: str = ""
     smtp_host: str = ""

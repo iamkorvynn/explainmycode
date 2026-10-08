@@ -5,7 +5,7 @@ import { AIMentorPanel } from "./AIMentorPanel";
 import { AmIOnTrackBar } from "./AmIOnTrackBar";
 import { CodeEditor } from "./CodeEditor";
 import { FileExplorer } from "./FileExplorer";
-import { Terminal } from "./Terminal";
+import { Terminal, ExecutionStats } from "./Terminal";
 import { TopNavBar } from "./TopNavBar";
 import { WelcomeScreen } from "./WelcomeScreen";
 import {
@@ -81,6 +81,8 @@ export function MainIDE() {
   const [isTerminalRunning, setIsTerminalRunning] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [stdin, setStdin] = useState("");
+  const [lastExecutionStats, setLastExecutionStats] = useState<ExecutionStats | null>(null);
+  const [isTerminalMaximized, setIsTerminalMaximized] = useState(false);
 
   const selectedFile = useMemo(() => findNodeById(tree, selectedFileId), [tree, selectedFileId]);
 
@@ -301,33 +303,52 @@ export function MainIDE() {
   }
 
   async function handleRunCode() {
-    if (!workspace?.id || !selectedFile) {
-      pushTerminalLines(["> Select or create a file before running code"]);
-      return;
-    }
+    const defaultExt =
+      language === "python" ? "py" :
+      language === "javascript" ? "js" :
+      language === "typescript" ? "ts" :
+      language === "cpp" ? "cpp" :
+      language === "java" ? "java" : "txt";
+    const activeFilename = selectedFile?.name ?? `main.${defaultExt}`;
 
     try {
       setShowTerminal(true);
       setIsTerminalRunning(true);
-      pushTerminalLines([`> Running ${selectedFile.name}...`]);
+      pushTerminalLines([`> Running ${activeFilename} via OnlineCompiler.io...`]);
       const result = await runCode({
-        sourceCode: code,
-        language,
+        sourceCode: code || "",
+        language: language || "python",
         stdin,
-        workspaceId: workspace.id,
-        filename: selectedFile.name,
+        workspaceId: workspace?.id ?? undefined,
+        filename: activeFilename,
       });
-      const nextLines = [
-        result.stdout,
-        result.stderr,
-        result.compile_output,
-        `Process finished with status ${result.exit_status}`,
-      ].filter(Boolean) as string[];
+
+      setLastExecutionStats({
+        timeMs: result.execution_time_ms,
+        memoryKb: result.memory_kb,
+        exitStatus: result.exit_status,
+        provider: result.provider ?? "compiler-io",
+        timestamp: new Date().toLocaleTimeString(),
+      });
+
+      const nextLines: string[] = [];
+      if (result.stdout) {
+        nextLines.push(...result.stdout.split("\n").filter((l, i, arr) => i < arr.length - 1 || l.trim() !== ""));
+      }
+      if (result.stderr) {
+        nextLines.push(...result.stderr.split("\n").filter((l, i, arr) => i < arr.length - 1 || l.trim() !== ""));
+      }
+      if (result.compile_output) {
+        nextLines.push(...result.compile_output.split("\n").filter((l, i, arr) => i < arr.length - 1 || l.trim() !== ""));
+      }
+      const timeStr = result.execution_time_ms != null ? ` (${result.execution_time_ms}ms)` : "";
+      const memStr = result.memory_kb != null ? ` [${(result.memory_kb / 1024).toFixed(1)}MB]` : "";
+      nextLines.push(`✓ Process finished with status ${result.exit_status}${timeStr}${memStr}`);
       pushTerminalLines(nextLines);
     } catch (error) {
       pushTerminalLines([
-        "> Run failed",
-        error instanceof ApiError ? error.message : "Unable to execute the current file.",
+        "> Execution failed",
+        error instanceof ApiError ? error.message : "Unable to execute code.",
       ]);
     } finally {
       setIsTerminalRunning(false);
@@ -467,7 +488,12 @@ export function MainIDE() {
 
   return (
     <div className="h-screen w-screen bg-[#020617] text-[#e5e7eb] flex flex-col overflow-hidden">
-      <TopNavBar onRunCode={handleRunCode} />
+      <TopNavBar
+        onRunCode={handleRunCode}
+        onToggleTerminal={() => setShowTerminal((prev) => !prev)}
+        showTerminal={showTerminal}
+        isTerminalRunning={isTerminalRunning}
+      />
 
       <div className="flex-1 flex overflow-hidden">
         <PanelGroup direction="horizontal">
@@ -487,7 +513,7 @@ export function MainIDE() {
           <Panel defaultSize={52} minSize={30}>
             {showTerminal ? (
               <PanelGroup direction="vertical">
-                <Panel defaultSize={70} minSize={40}>
+                <Panel defaultSize={isTerminalMaximized ? 25 : 70} minSize={20}>
                   {selectedFile ? (
                     <CodeEditor
                       code={code}
@@ -507,13 +533,20 @@ export function MainIDE() {
 
                 <PanelResizeHandle className="h-[1px] bg-[#1f2937] hover:bg-[#22c55e] transition-colors" />
 
-                <Panel defaultSize={30} minSize={15}>
+                <Panel defaultSize={isTerminalMaximized ? 75 : 30} minSize={15}>
                   <Terminal
                     output={terminalOutput}
                     onClear={() => setTerminalOutput([])}
                     stdin={stdin}
                     onStdinChange={setStdin}
                     isLoading={isTerminalRunning}
+                    onRunCode={handleRunCode}
+                    onClose={() => setShowTerminal(false)}
+                    isMaximized={isTerminalMaximized}
+                    onToggleMaximize={() => setIsTerminalMaximized(!isTerminalMaximized)}
+                    language={language}
+                    filename={selectedFile?.name ?? "main.py"}
+                    executionStats={lastExecutionStats}
                   />
                 </Panel>
               </PanelGroup>

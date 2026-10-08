@@ -15,6 +15,7 @@ LANGUAGE_COMPILERS = {
     "ts": "typescript-deno",
     "cpp": "g++-15",
     "c++": "g++-15",
+    "c": "gcc-15",
     "java": "openjdk-25",
 }
 

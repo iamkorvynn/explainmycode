@@ -1,13 +1,16 @@
-import { Play, Sparkles, Cpu, Settings, BarChart3, Eye, LogOut, User, ChevronDown } from "lucide-react";
+import { Play, Sparkles, Cpu, Settings, BarChart3, Eye, LogOut, User, ChevronDown, Terminal as TerminalIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 
 interface TopNavBarProps {
   onRunCode: () => void;
+  onToggleTerminal?: () => void;
+  showTerminal?: boolean;
+  isTerminalRunning?: boolean;
 }
 
-export function TopNavBar({ onRunCode }: TopNavBarProps) {
+export function TopNavBar({ onRunCode, onToggleTerminal, showTerminal = false, isTerminalRunning = false }: TopNavBarProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -29,11 +32,25 @@ export function TopNavBar({ onRunCode }: TopNavBarProps) {
       {/* Action Buttons */}
       <div className="flex items-center gap-2 flex-1">
         <ActionButton
-          icon={<Play className="w-4 h-4" />}
-          label="Run Code"
+          icon={
+            isTerminalRunning ? (
+              <div className="w-3.5 h-3.5 border-2 border-[#22c55e]/30 border-t-[#22c55e] rounded-full animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )
+          }
+          label={isTerminalRunning ? "Running..." : "Run Code"}
           onClick={onRunCode}
           variant="success"
         />
+        {onToggleTerminal && (
+          <ActionButton
+            icon={<TerminalIcon className="w-4 h-4" />}
+            label="Terminal"
+            onClick={onToggleTerminal}
+            variant={showTerminal ? "primary" : "accent"}
+          />
+        )}
         <ActionButton
           icon={<Eye className="w-4 h-4" />}
           label="Visualize"
