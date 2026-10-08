@@ -39,8 +39,8 @@ export function AIAnalysisDashboard() {
 
   const qualityData = useMemo(
     () => [
-      { name: "Quality", value: data?.metrics.quality_score ?? 0, fill: "#FF7A50" },
-      { name: "Background", value: 100, fill: "#F5F4F0" },
+      { name: "Quality", value: data?.metrics.quality_score ?? 0, fill: "#eca8d6" },
+      { name: "Background", value: 100, fill: "#18181b" },
     ],
     [data]
   );
@@ -79,68 +79,42 @@ export function AIAnalysisDashboard() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-[#F8D0B5] via-[#F5C29F] to-[#F3B58C] p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans">
-      {/* Organic Contour Curves Watermark */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
-        viewBox="0 0 1440 900"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M-100 200 C 300 100, 600 400, 1000 250 C 1300 120, 1500 350, 1600 450"
-          stroke="#FFFFFF"
-          strokeWidth="1.5"
-          strokeDasharray="4 8"
-        />
-        <path
-          d="M-50 450 C 250 300, 650 600, 1100 400 C 1400 280, 1550 500, 1650 600"
-          stroke="#FFFFFF"
-          strokeWidth="2"
-        />
-        <path
-          d="M-80 700 C 350 550, 750 850, 1200 650 C 1450 520, 1580 750, 1680 800"
-          stroke="#FFFFFF"
-          strokeWidth="1.5"
-        />
-      </svg>
-
-      <div className="absolute top-1 right-6 text-white/30 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
-        //
-      </div>
+    <div className="h-screen w-screen bg-black p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans text-white">
+      {/* Background Glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[#eca8d6]/[0.03] rounded-full blur-[140px] pointer-events-none" />
 
       {/* Floating Studio Canvas */}
-      <div className="relative z-10 h-full w-full bg-[#FFFFFF] rounded-[22px] md:rounded-[30px] border border-[#F0EDE6] shadow-[0_25px_80px_rgba(180,80,30,0.18)] flex flex-col overflow-hidden">
+      <div className="relative z-10 h-full w-full bg-[#09090b] rounded-[22px] md:rounded-[30px] border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-16 bg-[#FFFFFF] border-b border-[#ECE8DF] flex items-center justify-between px-5 md:px-7 select-none">
+        <header className="h-16 bg-[#09090b] border-b border-white/10 flex items-center justify-between px-5 md:px-7 select-none">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/ide")}
-              className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
               title="Return to IDE"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#FF7A50] to-[#FF9E79] flex items-center justify-center text-white shadow-sm shadow-[#FF7A50]/20">
-                <TrendingUp className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-[#eca8d6] shadow-sm">
+                <TrendingUp className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center gap-1.5 leading-none">
-                  <span className="font-extrabold text-[16px] text-[#1E1E24]">
+                <div className="flex items-center gap-2 leading-none">
+                  <span className="font-serif text-[18px] text-white tracking-wide">
                     AI Analysis Dashboard
                   </span>
-                  <span className="w-2 h-2 rounded-full bg-[#FF7A50]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#eca8d6] animate-pulse" />
                 </div>
-                <span className="text-[10px] text-[#A8A29E] font-medium tracking-wide">
-                  Static & Runtime Complexity Intelligence
+                <span className="text-[10px] text-white/40 font-mono tracking-wider uppercase">
+                  Static & Runtime Intelligence
                 </span>
               </div>
             </div>
 
             {data?.provider && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF1EB] text-[#FF7A50] text-[11px] font-bold border border-[#FFD9CA] ml-2">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#eca8d6]/10 text-[#eca8d6] text-[11px] font-mono font-medium border border-[#eca8d6]/20 ml-2">
                 <Sparkles className="w-3 h-3" />
                 {data.provider === "groq"
                   ? "Powered by Groq AI"
@@ -154,7 +128,7 @@ export function AIAnalysisDashboard() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => void loadDashboard()}
-              className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
               title="Reload Dashboard"
             >
               <RefreshCcw className="w-4 h-4" />
@@ -162,19 +136,19 @@ export function AIAnalysisDashboard() {
 
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FBFBFA] border border-[#ECE8DF] text-xs font-bold text-[#1E1E24] shadow-xs"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono font-medium text-white shadow-xs"
             >
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FF7A50] to-[#FFB088] flex items-center justify-center text-white text-[11px] font-bold">
+              <div className="w-5 h-5 rounded-full bg-[#eca8d6] text-black flex items-center justify-center text-[10px] font-bold">
                 {user?.username ? user.username.charAt(0).toUpperCase() : "A"}
               </div>
-              <span>{user?.username || "Albert Flores"}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#A8A29E]" />
+              <span>{user?.username || "Developer"}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-white/40" />
             </motion.div>
 
             <button
               onClick={() => void handleLogout()}
               title="Sign Out"
-              className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#FEE2E2] text-[#78716C] hover:text-[#EF4444] border border-[#ECE8DF] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-red-500/10 text-white/60 hover:text-red-400 border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -182,25 +156,25 @@ export function AIAnalysisDashboard() {
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-[#FAF9F7]">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-[#000000]">
           <div className="max-w-6xl mx-auto space-y-6">
             {isLoading ? (
-              <div className="rounded-2xl border border-[#ECE8DF] bg-white p-8 text-xs text-[#78716C] flex items-center justify-center gap-3 shadow-xs">
-                <div className="w-4 h-4 border-2 border-[#FF7A50]/30 border-t-[#FF7A50] rounded-full animate-spin" />
-                <span className="font-semibold">Synthesizing intelligence metrics from your code...</span>
+              <div className="rounded-2xl border border-white/10 bg-[#09090b] p-10 text-xs text-white/60 flex items-center justify-center gap-3 shadow-xs">
+                <div className="w-4 h-4 border-2 border-[#eca8d6]/30 border-t-[#eca8d6] rounded-full animate-spin" />
+                <span className="font-mono text-white/70">Synthesizing intelligence metrics from your code...</span>
               </div>
             ) : errorMessage ? (
-              <div className="rounded-2xl border border-[#FCA5A5] bg-[#FEF2F2] p-6 text-xs text-[#DC2626] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+              <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-6 text-xs text-red-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
                 <div className="flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-[#DC2626] shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
                   <div>
-                    <p className="font-bold">Analysis Notice</p>
-                    <p className="text-[#B91C1C] mt-0.5">{errorMessage}</p>
+                    <p className="font-bold text-white">Analysis Notice</p>
+                    <p className="text-red-300/80 mt-0.5">{errorMessage}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => void loadDashboard()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#FCA5A5] text-xs font-bold text-[#DC2626] hover:bg-[#FEE2E2] transition-all cursor-pointer shrink-0"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-red-500/40 text-xs font-semibold text-red-200 hover:bg-white/15 transition-all cursor-pointer shrink-0"
                 >
                   <RefreshCcw className="w-3.5 h-3.5" />
                   <span>Retry Analysis</span>
@@ -211,28 +185,28 @@ export function AIAnalysisDashboard() {
                 {/* 4 Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <MetricCard
-                    icon={<Code2 className="w-5 h-5" />}
+                    icon={<Code2 className="w-4 h-4" />}
                     title="Total Lines"
                     value={String(data.metrics.total_lines)}
                     change={data.summary.primary_language}
                     positive
                   />
                   <MetricCard
-                    icon={<Cpu className="w-5 h-5" />}
+                    icon={<Cpu className="w-4 h-4" />}
                     title="Functions"
                     value={String(data.metrics.functions)}
                     change="Detected"
                     positive
                   />
                   <MetricCard
-                    icon={<Zap className="w-5 h-5" />}
+                    icon={<Zap className="w-4 h-4" />}
                     title="Algorithms"
                     value={String(data.metrics.algorithms)}
                     change={data.detected_algorithms.length ? "Matched" : "None"}
                     positive={data.metrics.algorithms > 0}
                   />
                   <MetricCard
-                    icon={<CheckCircle2 className="w-5 h-5" />}
+                    icon={<CheckCircle2 className="w-4 h-4" />}
                     title="Code Quality"
                     value={`${data.metrics.quality_score}%`}
                     change={qualityLabel(data.metrics.quality_score)}
@@ -277,7 +251,7 @@ export function AIAnalysisDashboard() {
                           />
                         ))
                       ) : (
-                        <div className="text-xs text-[#A8A29E] italic py-4 text-center">
+                        <div className="text-xs text-white/40 font-mono italic py-6 text-center">
                           No distinct named algorithm signature detected in current file.
                         </div>
                       )}
@@ -289,41 +263,41 @@ export function AIAnalysisDashboard() {
                     <div className="space-y-4">
                       <div>
                         <div className="flex items-center justify-between mb-1.5 text-xs">
-                          <span className="text-[#78716C] font-semibold">Time Complexity</span>
-                          <span className="font-mono font-bold text-[#FF7A50]">
+                          <span className="text-white/60 font-medium">Time Complexity</span>
+                          <span className="font-mono font-bold text-[#eca8d6]">
                             {data.complexity.time}
                           </span>
                         </div>
-                        <div className="h-2 bg-[#F5F4F0] rounded-full overflow-hidden">
+                        <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.min(90, 20 + data.metrics.algorithms * 12)}%` }}
                             transition={{ duration: 0.8 }}
-                            className="h-full bg-[#FF7A50] rounded-full"
+                            className="h-full bg-[#eca8d6] rounded-full"
                           />
                         </div>
                       </div>
 
                       <div>
                         <div className="flex items-center justify-between mb-1.5 text-xs">
-                          <span className="text-[#78716C] font-semibold">Space Complexity</span>
-                          <span className="font-mono font-bold text-[#3B82F6]">
+                          <span className="text-white/60 font-medium">Space Complexity</span>
+                          <span className="font-mono font-bold text-[#38bdf8]">
                             {data.complexity.space}
                           </span>
                         </div>
-                        <div className="h-2 bg-[#F5F4F0] rounded-full overflow-hidden">
+                        <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{
                               width: `${Math.min(85, 15 + data.complexity.metrics[3]?.value * 15)}%`,
                             }}
                             transition={{ duration: 0.8, delay: 0.1 }}
-                            className="h-full bg-[#3B82F6] rounded-full"
+                            className="h-full bg-[#38bdf8] rounded-full"
                           />
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-[#ECE8DF]">
+                      <div className="pt-4 border-t border-white/10">
                         <ResponsiveContainer width="100%" height={140}>
                           <BarChart
                             data={data.complexity.metrics}
@@ -331,25 +305,25 @@ export function AIAnalysisDashboard() {
                           >
                             <XAxis
                               dataKey="name"
-                              stroke="#A8A29E"
+                              stroke="#71717a"
                               fontSize={11}
                               axisLine={false}
                               tickLine={false}
                             />
                             <YAxis
-                              stroke="#A8A29E"
+                              stroke="#71717a"
                               fontSize={11}
                               axisLine={false}
                               tickLine={false}
                             />
                             <Tooltip
                               contentStyle={{
-                                backgroundColor: "#FFFFFF",
-                                border: "1px solid #ECE8DF",
-                                borderRadius: "12px",
-                                color: "#1E1E24",
+                                backgroundColor: "#09090b",
+                                border: "1px solid rgba(255,255,255,0.15)",
+                                borderRadius: "10px",
+                                color: "#ffffff",
                                 fontSize: "12px",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                                boxShadow: "0 8px 30px rgba(0,0,0,0.8)",
                               }}
                               cursor={false}
                             />
@@ -357,7 +331,7 @@ export function AIAnalysisDashboard() {
                               {data.complexity.metrics.map((entry, index) => (
                                 <Cell
                                   key={`${entry.name}-${index}`}
-                                  fill={index % 2 === 0 ? "#FF7A50" : "#3B82F6"}
+                                  fill={index % 2 === 0 ? "#eca8d6" : "#38bdf8"}
                                 />
                               ))}
                             </Bar>
@@ -390,10 +364,10 @@ export function AIAnalysisDashboard() {
                         </RadialBarChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <div className="text-3xl font-extrabold text-[#1E1E24]">
+                        <div className="text-3xl font-serif font-bold text-white">
                           {data.metrics.quality_score}%
                         </div>
-                        <div className="text-xs font-bold text-[#FF7A50] mt-0.5">
+                        <div className="text-xs font-mono font-bold text-[#eca8d6] mt-0.5">
                           {qualityLabel(data.metrics.quality_score)}
                         </div>
                       </div>
@@ -415,7 +389,7 @@ export function AIAnalysisDashboard() {
                         />
                       ))
                     ) : (
-                      <div className="text-xs text-[#A8A29E] italic py-4 text-center">
+                      <div className="text-xs text-white/40 font-mono italic py-6 text-center">
                         Code follows optimal conventions. No critical refactoring needed!
                       </div>
                     )}
@@ -454,21 +428,21 @@ function MetricCard({
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-[#ECE8DF] rounded-2xl p-4 hover:border-[#FF7A50]/50 transition-all shadow-xs"
+      className="bg-[#09090b] border border-white/10 rounded-2xl p-4 hover:border-white/20 transition-all shadow-xs"
     >
       <div className="flex items-center gap-3 mb-2.5">
-        <div className="w-9 h-9 rounded-xl bg-[#FFF1EB] border border-[#FFD9CA] flex items-center justify-center text-[#FF7A50]">
+        <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[#eca8d6]">
           {icon}
         </div>
-        <span className="text-xs font-bold text-[#A8A29E] uppercase tracking-wider">{title}</span>
+        <span className="text-[11px] font-mono font-medium text-white/40 uppercase tracking-wider">{title}</span>
       </div>
       <div className="flex items-end justify-between gap-3">
-        <span className="text-2xl font-extrabold text-[#1E1E24]">{value}</span>
+        <span className="text-2xl font-serif font-bold text-white">{value}</span>
         <span
-          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+          className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
             positive
-              ? "bg-[#F0FDF4] text-[#16A34A] border border-[#DCFCE7]"
-              : "bg-[#FFF1EB] text-[#FF7A50] border border-[#FFD9CA]"
+              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              : "bg-[#eca8d6]/10 text-[#eca8d6] border border-[#eca8d6]/20"
           }`}
         >
           {change}
@@ -483,9 +457,9 @@ function AnalysisCard({ title, children }: { title: string; children: React.Reac
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white border border-[#ECE8DF] rounded-2xl p-5 shadow-xs"
+      className="bg-[#09090b] border border-white/10 rounded-2xl p-5 shadow-xs"
     >
-      <h3 className="text-sm font-extrabold text-[#1E1E24] uppercase tracking-wider mb-4">
+      <h3 className="text-xs font-mono font-semibold text-white/50 uppercase tracking-wider mb-4">
         {title}
       </h3>
       {children}
@@ -503,18 +477,18 @@ function SummaryItem({
   value: string;
   icon: string;
   warning?: boolean;
-}) {
+  }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-[#FBFBFA] border border-[#ECE8DF] rounded-xl gap-3">
+    <div className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl gap-3 hover:border-white/10 transition-colors">
       <div className="flex items-center gap-2.5">
-        <span className="text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-white border border-[#ECE8DF] text-[#78716C]">
+        <span className="text-[10px] font-mono font-bold tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/10 text-white/40">
           {icon}
         </span>
-        <span className="text-xs font-semibold text-[#78716C]">{label}</span>
+        <span className="text-xs font-medium text-white/60">{label}</span>
       </div>
       <span
-        className={`text-xs font-bold text-right ${
-          warning ? "text-[#FF7A50]" : "text-[#1E1E24]"
+        className={`text-xs font-mono font-bold text-right ${
+          warning ? "text-[#eca8d6]" : "text-white"
         }`}
       >
         {value}
@@ -533,13 +507,13 @@ function AlgorithmItem({
   type: string;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-[#FBFBFA] border border-[#ECE8DF] rounded-xl hover:border-[#FF7A50]/40 transition-colors">
+    <div className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:border-white/15 transition-colors">
       <div>
-        <div className="font-bold text-xs text-[#1E1E24] mb-0.5">{name}</div>
-        <div className="text-[10px] text-[#A8A29E] uppercase tracking-wide">{type}</div>
+        <div className="font-semibold text-xs text-white mb-0.5">{name}</div>
+        <div className="text-[10px] font-mono text-white/40 uppercase tracking-wide">{type}</div>
       </div>
-      <div className="px-2.5 py-1 bg-[#FFF1EB] border border-[#FFD9CA] rounded-full">
-        <span className="text-xs font-mono font-bold text-[#FF7A50]">{complexity}</span>
+      <div className="px-2.5 py-1 bg-[#eca8d6]/10 border border-[#eca8d6]/20 rounded-full">
+        <span className="text-xs font-mono font-bold text-[#eca8d6]">{complexity}</span>
       </div>
     </div>
   );
@@ -557,9 +531,9 @@ function OptimizationItem({
   priority: "high" | "medium" | "low";
 }) {
   const priorityStyles = {
-    high: "bg-[#FEF2F2] border-[#FCA5A5] text-[#DC2626]",
-    medium: "bg-[#FFFBEB] border-[#FDE68A] text-[#D97706]",
-    low: "bg-[#EFF6FF] border-[#BFDBFE] text-[#2563EB]",
+    high: "bg-red-500/10 border-red-500/20 text-red-400",
+    medium: "bg-amber-500/10 border-amber-500/20 text-amber-400",
+    low: "bg-sky-500/10 border-sky-500/20 text-sky-400",
   };
 
   const typeLabels: Record<string, string> = {
@@ -570,20 +544,20 @@ function OptimizationItem({
   };
 
   return (
-    <div className="flex gap-3.5 p-3.5 bg-[#FBFBFA] border border-[#ECE8DF] rounded-xl hover:border-[#FF7A50]/40 transition-colors">
-      <div className="shrink-0 w-9 h-9 rounded-xl bg-white border border-[#ECE8DF] flex items-center justify-center text-[10px] font-mono font-bold text-[#78716C]">
+    <div className="flex gap-3.5 p-3.5 bg-white/[0.02] border border-white/5 rounded-xl hover:border-white/15 transition-colors">
+      <div className="shrink-0 w-8 h-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-[10px] font-mono font-bold text-white/40">
         {typeLabels[type] ?? "TIP"}
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-bold text-xs text-[#1E1E24]">{title}</span>
+          <span className="font-semibold text-xs text-white">{title}</span>
           <span
-            className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${priorityStyles[priority]}`}
+            className={`text-[9px] font-mono uppercase font-bold px-2 py-0.5 rounded-full border ${priorityStyles[priority]}`}
           >
             {priority}
           </span>
         </div>
-        <p className="text-xs text-[#78716C] leading-relaxed">{description}</p>
+        <p className="text-xs text-white/50 leading-relaxed">{description}</p>
       </div>
     </div>
   );

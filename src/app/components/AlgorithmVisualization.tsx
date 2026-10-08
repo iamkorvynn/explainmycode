@@ -10,7 +10,6 @@ import {
   Wand2,
   Library,
   Code2,
-  Layers,
   ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -156,10 +155,10 @@ export function AlgorithmVisualization() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-[#F8D0B5] via-[#F5C29F] to-[#F3B58C] p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans">
-      {/* Organic Contour Curves Watermark */}
+    <div className="h-screen w-screen bg-black text-white p-2 md:p-3 overflow-hidden flex flex-col relative font-sans select-none">
+      {/* Background Watermark */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-10"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -182,35 +181,35 @@ export function AlgorithmVisualization() {
         />
       </svg>
 
-      <div className="absolute top-1 right-6 text-white/30 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
+      <div className="absolute top-1 right-6 text-white/20 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
         //
       </div>
 
       {/* Floating Studio Canvas */}
-      <div className="relative z-10 h-full w-full bg-[#FFFFFF] rounded-[22px] md:rounded-[30px] border border-[#F0EDE6] shadow-[0_25px_80px_rgba(180,80,30,0.18)] flex flex-col overflow-hidden">
+      <div className="relative z-10 h-full w-full bg-[#09090b] text-white rounded-[18px] md:rounded-[22px] border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
         {/* Top Header Bar */}
-        <header className="h-16 bg-[#FFFFFF] border-b border-[#ECE8DF] flex items-center justify-between px-5 md:px-7 select-none">
+        <header className="h-16 bg-[#000000] border-b border-white/10 flex items-center justify-between px-5 md:px-7 select-none">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/ide")}
-              className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
               title="Return to IDE"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
 
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#FF7A50] to-[#FF9E79] flex items-center justify-center text-white shadow-sm shadow-[#FF7A50]/20">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-lg bg-white/[0.05] border border-white/15 flex items-center justify-center text-[#eca8d6]">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5 leading-none">
-                  <span className="font-extrabold text-[16px] text-[#1E1E24]">
+                  <span className="font-display text-lg text-white">
                     Algorithm Visualizer
                   </span>
-                  <span className="w-2 h-2 rounded-full bg-[#FF7A50]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#eca8d6]" />
                 </div>
-                <span className="text-[10px] text-[#A8A29E] font-medium tracking-wide">
+                <span className="text-[10px] text-white/40 font-mono tracking-wide">
                   Interactive State-Transition Studio
                 </span>
               </div>
@@ -220,19 +219,19 @@ export function AlgorithmVisualization() {
           <div className="flex items-center gap-2.5">
             <motion.div
               whileHover={{ scale: 1.02 }}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FBFBFA] border border-[#ECE8DF] text-xs font-bold text-[#1E1E24] shadow-xs"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 text-xs font-mono text-white shadow-xs"
             >
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FF7A50] to-[#FFB088] flex items-center justify-center text-white text-[11px] font-bold">
-                {user?.username ? user.username.charAt(0).toUpperCase() : "A"}
+              <div className="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white text-[11px] font-bold">
+                {user?.username ? user.username.charAt(0).toUpperCase() : "D"}
               </div>
-              <span>{user?.username || "Albert Flores"}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#A8A29E]" />
+              <span>{user?.username || "Developer"}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-white/40" />
             </motion.div>
 
             <button
               onClick={() => void handleLogout()}
               title="Sign Out"
-              className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#FEE2E2] text-[#78716C] hover:text-[#EF4444] border border-[#ECE8DF] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-red-500/10 text-white/60 hover:text-red-400 border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -242,18 +241,18 @@ export function AlgorithmVisualization() {
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Controls & Library Sidebar */}
-          <aside className="w-[340px] bg-[#FBFBFA] border-r border-[#ECE8DF] p-4 overflow-y-auto space-y-4 select-none">
+          <aside className="w-[340px] bg-[#000000] border-r border-white/10 p-4 overflow-y-auto space-y-4 select-none">
             {/* Builder Card */}
-            <div className="rounded-2xl border border-[#ECE8DF] bg-white p-4 space-y-3.5 shadow-xs">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3.5">
               <div className="flex items-center gap-2">
-                <Wand2 className="w-4 h-4 text-[#FF7A50]" />
-                <h2 className="text-xs font-extrabold text-[#1E1E24] uppercase tracking-wider">
+                <Wand2 className="w-4 h-4 text-[#eca8d6]" />
+                <h2 className="text-xs font-mono font-semibold text-white uppercase tracking-wider">
                   Build Visualization
                 </h2>
               </div>
 
               {/* Segmented Mode Button */}
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#F5F4F0] rounded-xl border border-[#ECE8DF]">
+              <div className="grid grid-cols-2 gap-1.5 p-1 bg-white/[0.04] rounded-lg border border-white/10">
                 <ModeButton
                   active={sourceMode === "editor"}
                   label="Current Code"
@@ -270,16 +269,16 @@ export function AlgorithmVisualization() {
 
               {sourceMode === "editor" ? (
                 <div className="space-y-3">
-                  <div className="rounded-xl border border-[#ECE8DF] bg-[#FBFBFA] p-3 text-xs space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-[#A8A29E] tracking-wider">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs space-y-1 font-mono">
+                    <div className="text-[10px] uppercase font-semibold text-white/40 tracking-wider">
                       Editor Snapshot
                     </div>
-                    <div className="text-xs font-semibold text-[#1E1E24]">
+                    <div className="text-xs font-medium text-white">
                       {currentCode.code.trim()
                         ? "Active file loaded and ready."
                         : "No open code detected yet."}
                     </div>
-                    <div className="text-[11px] text-[#78716C]">
+                    <div className="text-[11px] text-white/50">
                       Language: {currentCode.language || "python"}
                     </div>
                   </div>
@@ -288,27 +287,27 @@ export function AlgorithmVisualization() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => void handleGenerate("editor")}
-                    className="w-full h-10 rounded-xl bg-[#FF7A50] hover:bg-[#FF6633] active:bg-[#E65F35] text-white font-bold text-xs shadow-md shadow-[#FF7A50]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full h-10 rounded-full bg-white hover:bg-white/90 active:bg-white/80 text-black font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 text-black" />
                     <span>Generate Walkthrough</span>
                   </motion.button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 font-mono">
                   <div>
-                    <label className="block text-[11px] font-bold text-[#A8A29E] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1">
                       Algorithm Title
                     </label>
                     <input
                       value={algorithmName}
                       onChange={(event) => setAlgorithmName(event.target.value)}
                       placeholder="e.g. Dijkstra Shortest Path"
-                      className="w-full h-9 rounded-xl border border-[#ECE8DF] bg-[#F7F6F2] focus:bg-white px-3 text-xs text-[#1E1E24] placeholder-[#A8A29E] outline-none focus:border-[#FF7A50] transition-colors"
+                      className="w-full h-9 rounded-lg border border-white/10 bg-white/[0.03] px-3 text-xs text-white placeholder-white/30 outline-none focus:border-[#eca8d6]/50 transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-[#A8A29E] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] text-white/50 uppercase tracking-wider mb-1">
                       Focus or Constraints
                     </label>
                     <textarea
@@ -316,7 +315,7 @@ export function AlgorithmVisualization() {
                       onChange={(event) => setPrompt(event.target.value)}
                       placeholder="Show priority queue updates and relaxation..."
                       rows={4}
-                      className="w-full rounded-xl border border-[#ECE8DF] bg-[#F7F6F2] focus:bg-white p-3 text-xs text-[#1E1E24] placeholder-[#A8A29E] outline-none resize-none focus:border-[#FF7A50] transition-colors"
+                      className="w-full rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-white placeholder-white/30 outline-none resize-none focus:border-[#eca8d6]/50 transition-colors"
                     />
                   </div>
 
@@ -324,9 +323,9 @@ export function AlgorithmVisualization() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => void handleGenerate("scratch")}
-                    className="w-full h-10 rounded-xl bg-[#FF7A50] hover:bg-[#FF6633] active:bg-[#E65F35] text-white font-bold text-xs shadow-md shadow-[#FF7A50]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full h-10 rounded-full bg-white hover:bg-white/90 active:bg-white/80 text-black font-semibold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer font-sans"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 text-black" />
                     <span>Synthesize Algorithm</span>
                   </motion.button>
                 </div>
@@ -334,10 +333,10 @@ export function AlgorithmVisualization() {
             </div>
 
             {/* Template Library Card */}
-            <div className="rounded-2xl border border-[#ECE8DF] bg-white p-4 space-y-3 shadow-xs">
+            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <Library className="w-4 h-4 text-[#3B82F6]" />
-                <h3 className="text-xs font-extrabold text-[#1E1E24] uppercase tracking-wider">
+                <Library className="w-4 h-4 text-[#60a5fa]" />
+                <h3 className="text-xs font-mono font-semibold text-white uppercase tracking-wider">
                   Template Library
                 </h3>
               </div>
@@ -349,25 +348,25 @@ export function AlgorithmVisualization() {
                     <button
                       key={template.id}
                       onClick={() => void loadTemplate(template.id)}
-                      className={`w-full text-left rounded-xl border p-3 transition-all cursor-pointer ${
+                      className={`w-full text-left rounded-lg border p-3 transition-all cursor-pointer ${
                         isActive
-                          ? "border-[#FF7A50] bg-[#FFF1EB] shadow-xs"
-                          : "border-[#ECE8DF] bg-[#FBFBFA] hover:bg-[#F5F4F0] hover:border-[#DDD8CD]"
+                          ? "border-[#eca8d6]/50 bg-[#eca8d6]/10 shadow-xs"
+                          : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <div
-                          className={`font-bold text-xs truncate ${
-                            isActive ? "text-[#FF7A50]" : "text-[#1E1E24]"
+                          className={`font-semibold text-xs truncate ${
+                            isActive ? "text-[#eca8d6]" : "text-white"
                           }`}
                         >
                           {template.title}
                         </div>
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-white border border-[#ECE8DF] text-[#78716C] shrink-0">
+                        <span className="text-[10px] uppercase font-mono font-semibold tracking-wider px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/10 text-white/50 shrink-0">
                           {template.category}
                         </span>
                       </div>
-                      <div className="text-[11px] text-[#78716C] line-clamp-2 leading-relaxed">
+                      <div className="text-[11px] text-white/50 line-clamp-2 leading-relaxed">
                         {template.description}
                       </div>
                     </button>
@@ -378,9 +377,9 @@ export function AlgorithmVisualization() {
           </aside>
 
           {/* Main Visualizer Area */}
-          <main className="flex-1 flex flex-col overflow-hidden bg-[#FAF9F7]">
+          <main className="flex-1 flex flex-col overflow-hidden bg-[#09090b]">
             {/* Playback Control Bar */}
-            <div className="h-14 bg-white border-b border-[#ECE8DF] flex items-center justify-center gap-3 px-6 select-none shadow-xs">
+            <div className="h-14 bg-[#000000] border-b border-white/10 flex items-center justify-center gap-3 px-6 select-none shadow-xs">
               <ControlButton
                 onClick={() => {
                   setStepIndex(0);
@@ -395,12 +394,12 @@ export function AlgorithmVisualization() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsPlaying((value) => !value)}
                 disabled={!detail?.steps.length}
-                className="w-11 h-11 rounded-full bg-[#FF7A50] hover:bg-[#FF6633] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-[#FF7A50]/30 cursor-pointer"
+                className="w-11 h-11 rounded-full bg-white hover:bg-white/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md cursor-pointer text-black"
               >
                 {isPlaying ? (
-                  <Pause className="w-4 h-4 text-white" />
+                  <Pause className="w-4 h-4 fill-current text-black" />
                 ) : (
-                  <Play className="w-4 h-4 text-white ml-0.5" />
+                  <Play className="w-4 h-4 fill-current text-black ml-0.5" />
                 )}
               </motion.button>
 
@@ -424,16 +423,16 @@ export function AlgorithmVisualization() {
               ) : detail && currentStep ? (
                 <div className="max-w-6xl mx-auto space-y-6">
                   {/* Step Header */}
-                  <div className="flex flex-wrap items-start justify-between gap-4 p-5 rounded-2xl bg-white border border-[#ECE8DF] shadow-xs">
+                  <div className="flex flex-wrap items-start justify-between gap-4 p-5 rounded-xl bg-white/[0.02] border border-white/10 shadow-xs">
                     <div>
-                      <h1 className="text-xl font-extrabold text-[#1E1E24]">
+                      <h1 className="text-xl font-display text-white">
                         {detail.title}
                       </h1>
-                      <p className="text-xs text-[#78716C] mt-1 max-w-2xl leading-relaxed">
+                      <p className="text-xs text-white/50 mt-1 max-w-2xl leading-relaxed font-mono">
                         {detail.description}
                       </p>
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs font-mono">
                       <Badge>{detail.visualization_type}</Badge>
                       <Badge>{detail.source}</Badge>
                       <Badge>{detail.steps.length} steps</Badge>
@@ -452,17 +451,17 @@ export function AlgorithmVisualization() {
                   </AnimatePresence>
 
                   {/* Step Timeline Pills Card */}
-                  <div className="rounded-2xl border border-[#ECE8DF] bg-white p-5 shadow-xs space-y-3">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5 space-y-3 font-mono">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <div className="text-xs font-bold text-[#1E1E24]">
+                        <div className="text-xs font-semibold text-white">
                           {currentStep.label}
                         </div>
-                        <div className="text-[11px] text-[#A8A29E]">
+                        <div className="text-[11px] text-white/40">
                           Step {currentStep.index + 1} of {detail.steps.length}
                         </div>
                       </div>
-                      <div className="text-xs font-semibold text-[#FF7A50]">
+                      <div className="text-xs font-medium text-[#eca8d6]">
                         {currentStep.narration || "Follow the state transition."}
                       </div>
                     </div>
@@ -477,10 +476,10 @@ export function AlgorithmVisualization() {
                               setStepIndex(step.index);
                               setIsPlaying(false);
                             }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer ${
                               isCurrent
-                                ? "bg-[#FF7A50] text-white shadow-xs"
-                                : "bg-[#F5F4F0] text-[#78716C] hover:bg-[#EBE8E0] hover:text-[#1E1E24] border border-[#ECE8DF]"
+                                ? "bg-white text-black font-semibold shadow-xs"
+                                : "bg-white/[0.04] text-white/60 hover:text-white border border-white/10"
                             }`}
                           >
                             {step.index + 1}. {step.label}
@@ -520,22 +519,22 @@ function VisualizationCanvas({ step }: { step: VisualizationDetail["steps"][numb
 
   return (
     <div className="grid xl:grid-cols-[minmax(0,2fr)_320px] gap-6">
-      <div className="rounded-2xl border border-[#ECE8DF] bg-white p-5 min-h-[400px] space-y-5 shadow-xs">
+      <div className="rounded-xl border border-white/10 bg-[#000000] p-5 min-h-[400px] space-y-5">
         {variables.length > 0 ? (
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2.5">
+            <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2.5">
               Active Variables
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               {variables.map((variable, index) => (
                 <div
                   key={`${variable.name ?? "var"}-${index}`}
-                  className="rounded-xl border border-[#ECE8DF] bg-[#FBFBFA] p-3 text-xs shadow-xs"
+                  className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs"
                 >
-                  <div className="text-[10px] uppercase font-bold text-[#A8A29E] tracking-wider">
+                  <div className="text-[10px] uppercase font-mono text-white/40 tracking-wider">
                     {variable.name ?? "value"}
                   </div>
-                  <div className="text-sm font-extrabold text-[#1E1E24] mt-1 font-mono">
+                  <div className="text-sm font-bold text-white mt-1 font-mono">
                     {String(variable.value ?? "-")}
                   </div>
                 </div>
@@ -548,32 +547,32 @@ function VisualizationCanvas({ step }: { step: VisualizationDetail["steps"][numb
         {collections.length ? <CollectionScene collections={collections} /> : null}
         {callStack.length ? <CallStackScene frames={callStack} /> : null}
         {!graph?.nodes?.length && !collections.length && !callStack.length ? (
-          <pre className="rounded-xl border border-[#ECE8DF] bg-[#F7F6F2] p-4 text-xs text-[#78716C] font-mono overflow-auto">
+          <pre className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-xs text-white/60 font-mono overflow-auto">
             {JSON.stringify(step.state, null, 2)}
           </pre>
         ) : null}
       </div>
 
-      <aside className="rounded-2xl border border-[#ECE8DF] bg-white p-5 space-y-4 shadow-xs">
+      <aside className="rounded-xl border border-white/10 bg-[#000000] p-5 space-y-4">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+          <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
             Step Narration
           </div>
-          <p className="text-xs leading-relaxed text-[#1E1E24] font-medium">
+          <p className="text-xs leading-relaxed text-white/80 font-sans">
             {step.narration || "Follow the state transition for this step."}
           </p>
         </div>
 
         {focus.length ? (
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+            <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
               Focus Nodes
             </div>
             <div className="flex flex-wrap gap-1.5">
               {focus.map((item, index) => (
                 <span
                   key={`${item}-${index}`}
-                  className="px-2.5 py-1 rounded-full bg-[#FFF1EB] border border-[#FFD9CA] text-[#FF7A50] text-xs font-bold"
+                  className="px-2.5 py-1 rounded-full bg-[#eca8d6]/10 border border-[#eca8d6]/25 text-[#eca8d6] text-xs font-mono"
                 >
                   {item}
                 </span>
@@ -584,14 +583,14 @@ function VisualizationCanvas({ step }: { step: VisualizationDetail["steps"][numb
 
         {notes.length ? (
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+            <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
               Mentor Notes
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 font-mono">
               {notes.map((note, index) => (
                 <div
                   key={`${note}-${index}`}
-                  className="rounded-xl border border-[#ECE8DF] bg-[#FBFBFA] p-2.5 text-xs text-[#78716C]"
+                  className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-xs text-white/60"
                 >
                   {note}
                 </div>
@@ -612,7 +611,7 @@ function CollectionScene({ collections }: { collections: VisualCollection[] }) {
         const isGrid = collection.layout === "grid";
         return (
           <div key={`${collection.label ?? "collection"}-${collectionIndex}`}>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+            <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
               {collection.label ?? "Collection"}
             </div>
             <div className={isGrid ? "grid grid-cols-2 lg:grid-cols-4 gap-2.5" : "flex flex-wrap gap-2.5"}>
@@ -620,14 +619,14 @@ function CollectionScene({ collections }: { collections: VisualCollection[] }) {
                 <motion.div
                   key={`${item.label ?? "item"}-${itemIndex}`}
                   layout
-                  className={`min-w-[70px] rounded-2xl border px-3 py-2.5 text-center shadow-xs transition-all ${itemClassName(
+                  className={`min-w-[70px] rounded-xl border px-3 py-2.5 text-center transition-all ${itemClassName(
                     item.status
                   )}`}
                 >
-                  <div className="text-[10px] uppercase font-bold tracking-wider opacity-70">
+                  <div className="text-[10px] uppercase font-mono opacity-70">
                     {item.label ?? itemIndex}
                   </div>
-                  <div className="text-sm font-extrabold mt-0.5 font-mono">
+                  <div className="text-sm font-bold mt-0.5 font-mono">
                     {String(item.value ?? "")}
                   </div>
                 </motion.div>
@@ -646,17 +645,17 @@ function GraphScene({ graph }: { graph: { nodes?: VisualNode[]; edges?: VisualEd
   return (
     <div className="space-y-4">
       <div>
-        <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+        <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
           Graph Topology
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {nodes.map((node, index) => (
             <div
               key={`${node.id ?? node.label ?? "node"}-${index}`}
-              className={`rounded-2xl border p-3.5 text-center shadow-xs ${itemClassName(node.status)}`}
+              className={`rounded-xl border p-3.5 text-center ${itemClassName(node.status)}`}
             >
-              <div className="text-lg font-extrabold">{node.label ?? node.id ?? "?"}</div>
-              <div className="text-[10px] uppercase font-bold tracking-wider opacity-75 mt-1">
+              <div className="text-lg font-bold font-mono">{node.label ?? node.id ?? "?"}</div>
+              <div className="text-[10px] uppercase font-mono opacity-75 mt-1">
                 {node.status ?? "default"}
               </div>
             </div>
@@ -665,14 +664,14 @@ function GraphScene({ graph }: { graph: { nodes?: VisualNode[]; edges?: VisualEd
       </div>
       {edges.length ? (
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+          <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
             Adjacency Links
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 font-mono">
             {edges.map((edge, index) => (
               <span
                 key={`${edge.from ?? "?"}-${edge.to ?? "?"}-${index}`}
-                className="px-2.5 py-1 rounded-xl bg-[#F5F4F0] border border-[#ECE8DF] text-xs font-mono font-bold text-[#1E1E24]"
+                className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/10 text-xs font-semibold text-white"
               >
                 {edge.from} → {edge.to}
               </span>
@@ -687,14 +686,14 @@ function GraphScene({ graph }: { graph: { nodes?: VisualNode[]; edges?: VisualEd
 function CallStackScene({ frames }: { frames: string[] }) {
   return (
     <div>
-      <div className="text-[11px] font-bold uppercase tracking-wider text-[#A8A29E] mb-2">
+      <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-white/40 mb-2">
         Call Stack Frames
       </div>
       <div className="space-y-2">
         {frames.map((frame, index) => (
           <div
             key={`${frame}-${index}`}
-            className="rounded-xl border border-[#ECE8DF] bg-[#FBFBFA] px-3 py-2 text-xs font-mono font-semibold text-[#1E1E24]"
+            className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-xs font-mono text-white"
           >
             {frame}
           </div>
@@ -718,10 +717,10 @@ function ModeButton({
   return (
     <button
       onClick={onClick}
-      className={`h-9 rounded-lg flex items-center justify-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+      className={`h-9 rounded-md flex items-center justify-center gap-1.5 text-xs font-mono transition-all cursor-pointer ${
         active
-          ? "bg-[#FF7A50] text-white shadow-xs"
-          : "text-[#78716C] hover:text-[#1E1E24]"
+          ? "bg-white text-black font-semibold shadow-xs"
+          : "text-white/60 hover:text-white"
       }`}
     >
       {icon}
@@ -748,7 +747,7 @@ function ControlButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="w-9 h-9 rounded-full bg-[#F5F4F0] hover:bg-[#EBE8E0] text-[#78716C] hover:text-[#1E1E24] border border-[#ECE8DF] disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
+      className="w-9 h-9 rounded-full bg-white/[0.04] hover:bg-white/[0.08] text-white/70 hover:text-white border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center justify-center cursor-pointer"
     >
       {icon}
     </motion.button>
@@ -757,7 +756,7 @@ function ControlButton({
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="px-2.5 py-1 rounded-full bg-[#F5F4F0] border border-[#ECE8DF] text-[#78716C] font-semibold text-[11px]">
+    <span className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-white/60 font-mono text-[11px]">
       {children}
     </span>
   );
@@ -772,10 +771,10 @@ function PanelMessage({
 }) {
   return (
     <div
-      className={`max-w-xl mx-auto rounded-2xl border p-6 text-xs text-center font-medium ${
+      className={`max-w-xl mx-auto rounded-xl border p-6 text-xs text-center font-mono ${
         tone === "error"
-          ? "border-[#FCA5A5] bg-[#FEF2F2] text-[#DC2626]"
-          : "border-[#ECE8DF] bg-white text-[#78716C] shadow-xs"
+          ? "border-red-500/20 bg-red-500/10 text-red-400"
+          : "border-white/10 bg-white/[0.02] text-white/60"
       }`}
     >
       {children}
@@ -786,20 +785,20 @@ function PanelMessage({
 function itemClassName(status?: string) {
   switch ((status ?? "").toLowerCase()) {
     case "active":
-      return "border-[#FF7A50] bg-[#FFF1EB] text-[#FF7A50]";
+      return "border-[#eca8d6] bg-[#eca8d6]/15 text-[#eca8d6]";
     case "sorted":
     case "done":
     case "visited":
-      return "border-[#10B981] bg-[#F0FDF4] text-[#16A34A]";
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
     case "pivot":
     case "frontier":
-      return "border-[#F59E0B] bg-[#FFFBEB] text-[#D97706]";
+      return "border-amber-500/30 bg-amber-500/10 text-amber-300";
     case "boundary":
     case "candidate":
-      return "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]";
+      return "border-purple-500/30 bg-purple-500/10 text-purple-300";
     case "dimmed":
-      return "border-[#ECE8DF] bg-[#F5F4F0] text-[#A8A29E]";
+      return "border-white/5 bg-white/[0.02] text-white/30";
     default:
-      return "border-[#ECE8DF] bg-[#FFFFFF] text-[#1E1E24]";
+      return "border-white/10 bg-white/[0.04] text-white";
   }
 }

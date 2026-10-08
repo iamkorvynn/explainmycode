@@ -7,14 +7,8 @@ import {
   Folder,
   Search,
   FolderOpen,
-  Sparkles,
-  Eye,
-  BarChart3,
-  Terminal as TerminalIcon,
-  HardDrive,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useNavigate } from "react-router";
 
 import type { WorkspaceNode } from "../lib/api";
 
@@ -35,23 +29,22 @@ export function FileExplorer({
   onCreateFile,
   onSelectFile,
 }: FileExplorerProps) {
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const filteredNodes = useMemo(() => filterTree(nodes, search), [nodes, search]);
 
   const totalFiles = useMemo(() => countFiles(nodes), [nodes]);
 
   return (
-    <aside className="h-full bg-[#FBFBFA] border-r border-[#ECE8DF] flex flex-col select-none transition-colors">
-      {/* Header with Purr'Coffee-Style Pill Badge */}
-      <div className="p-3.5 border-b border-[#ECE8DF] space-y-2.5">
+    <aside className="h-full bg-[#000000] border-r border-white/10 flex flex-col select-none text-white transition-colors">
+      {/* Header */}
+      <div className="p-3.5 border-b border-white/10 space-y-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold tracking-wider text-[#A8A29E] uppercase">
+            <span className="text-[11px] font-mono tracking-wider text-white/50 uppercase">
               {workspaceName ? workspaceName : "Workspace"}
             </span>
-            {/* Coral Pill Counter (Like '13' in the mockup) */}
-            <span className="px-2 py-0.5 rounded-full bg-[#FF7A50] text-white text-[10px] font-bold shadow-xs">
+            {/* Pill Counter */}
+            <span className="px-2 py-0.5 rounded-full bg-[#eca8d6] text-black text-[10px] font-semibold font-mono">
               {totalFiles}
             </span>
           </div>
@@ -61,7 +54,7 @@ export function FileExplorer({
             whileTap={{ scale: 0.94 }}
             onClick={onCreateFile}
             title="Create new file"
-            className="w-7 h-7 rounded-lg bg-[#FFFFFF] hover:bg-[#FFF1EB] border border-[#ECE8DF] hover:border-[#FF7A50]/50 text-[#78716C] hover:text-[#FF7A50] flex items-center justify-center transition-all shadow-xs cursor-pointer"
+            className="w-7 h-7 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/20 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer"
           >
             <FilePlus className="w-3.5 h-3.5" />
           </motion.button>
@@ -69,13 +62,13 @@ export function FileExplorer({
 
         {/* Search input */}
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#A8A29E]" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter files..."
-            className="w-full h-8 bg-white border border-[#ECE8DF] rounded-xl pl-8 pr-2 text-xs text-[#1E1E24] placeholder:text-[#A8A29E] focus:outline-none focus:border-[#FF7A50] focus:ring-1 focus:ring-[#FF7A50]/20 transition-all shadow-xs"
+            className="w-full h-8 bg-white/[0.03] border border-white/10 rounded-lg pl-8 pr-2 text-xs text-white placeholder:text-white/35 font-mono focus:outline-none focus:border-[#eca8d6]/50 focus:ring-1 focus:ring-[#eca8d6]/30 transition-all"
           />
         </div>
       </div>
@@ -83,12 +76,12 @@ export function FileExplorer({
       {/* File Tree List */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-0.5">
         {isLoading ? (
-          <div className="px-3 py-6 text-xs text-[#A8A29E] flex items-center justify-center gap-2">
-            <div className="w-3 h-3 border-2 border-[#FF7A50]/30 border-t-[#FF7A50] rounded-full animate-spin" />
+          <div className="px-3 py-6 text-xs text-white/40 flex items-center justify-center gap-2 font-mono">
+            <div className="w-3 h-3 border-2 border-[#eca8d6]/30 border-t-[#eca8d6] rounded-full animate-spin" />
             <span>Loading workspace files...</span>
           </div>
         ) : filteredNodes.length === 0 ? (
-          <div className="px-3 py-6 text-center text-xs text-[#A8A29E]">
+          <div className="px-3 py-6 text-center text-xs text-white/40 font-mono">
             No files match your query.
           </div>
         ) : (
@@ -103,44 +96,6 @@ export function FileExplorer({
           ))
         )}
       </div>
-
-      {/* Bottom Shortcuts Deck (matching the Purr'Coffee left nav items) */}
-      <div className="p-3 border-t border-[#ECE8DF] bg-[#F8F7F4] space-y-1.5">
-        <button
-          onClick={() => navigate("/visualize")}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:text-[#1E1E24] hover:bg-white hover:border-[#ECE8DF] border border-transparent transition-all shadow-xs group"
-        >
-          <div className="flex items-center gap-2">
-            <Eye className="w-3.5 h-3.5 text-[#FF7A50]" />
-            <span>Algorithm Visualizer</span>
-          </div>
-          <span className="text-[10px] text-[#A8A29E] group-hover:text-[#FF7A50] transition-colors">
-            Interactive
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/analysis")}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-[#78716C] hover:text-[#1E1E24] hover:bg-white hover:border-[#ECE8DF] border border-transparent transition-all shadow-xs group"
-        >
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-3.5 h-3.5 text-[#3B82F6]" />
-            <span>AI Code Health</span>
-          </div>
-          <span className="text-[10px] text-[#A8A29E] group-hover:text-[#3B82F6] transition-colors">
-            Metrics
-          </span>
-        </button>
-
-        {/* Sandbox status pill */}
-        <div className="pt-1 flex items-center justify-between px-3 text-[10px] text-[#A8A29E]">
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-            Docker Sandbox Online
-          </span>
-          <span className="font-mono text-[#78716C]">v1.4</span>
-        </div>
-      </div>
     </aside>
   );
 }
@@ -153,28 +108,28 @@ interface FileTreeNodeProps {
 }
 
 function FileTreeNode({ node, depth, selectedFileId, onSelectFile }: FileTreeNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(depth === 0);
+  const [isExpanded, setIsExpanded] = useState(true);
   const isSelected = selectedFileId === node.id;
 
   if (node.type === "folder") {
     return (
       <div>
         <div
-          onClick={() => setIsExpanded((value) => !value)}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl cursor-pointer hover:bg-[#F2F0EB] text-[#78716C] hover:text-[#1E1E24] transition-colors group"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/[0.04] cursor-pointer transition-colors"
           style={{ paddingLeft: `${depth * 14 + 10}px` }}
         >
           {isExpanded ? (
-            <ChevronDown className="w-3.5 h-3.5 text-[#A8A29E]" />
+            <ChevronDown className="w-3.5 h-3.5 text-white/40" />
           ) : (
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A29E]" />
+            <ChevronRight className="w-3.5 h-3.5 text-white/40" />
           )}
           {isExpanded ? (
-            <FolderOpen className="w-3.5 h-3.5 text-[#FF7A50]" />
+            <FolderOpen className="w-3.5 h-3.5 text-[#eca8d6]" />
           ) : (
-            <Folder className="w-3.5 h-3.5 text-[#FF7A50]" />
+            <Folder className="w-3.5 h-3.5 text-white/40" />
           )}
-          <span className="text-xs font-semibold text-[#1E1E24]">{node.name}</span>
+          <span className="text-xs truncate font-medium">{node.name}</span>
         </div>
 
         {isExpanded && node.children?.length ? (
@@ -199,25 +154,23 @@ function FileTreeNode({ node, depth, selectedFileId, onSelectFile }: FileTreeNod
   return (
     <div
       onClick={() => onSelectFile(node)}
-      className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer transition-all ${
+      className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-all ${
         isSelected
-          ? "bg-[#FFFFFF] text-[#1E1E24] font-bold border border-[#ECE8DF] shadow-xs relative"
-          : "text-[#78716C] hover:text-[#1E1E24] hover:bg-[#F2F0EB]"
+          ? "bg-white/[0.08] text-white font-medium border border-white/15 shadow-xs relative"
+          : "text-white/60 hover:text-white hover:bg-white/[0.04]"
       }`}
       style={{ paddingLeft: `${depth * 14 + 16}px` }}
     >
       <div className="flex items-center gap-2 truncate">
-        {/* Active Coral Dot Indicator */}
         {isSelected ? (
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FF7A50] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#eca8d6] shrink-0" />
         ) : (
-          <FileCode className="w-3.5 h-3.5 text-[#A8A29E] shrink-0" />
+          <FileCode className="w-3.5 h-3.5 text-white/40 shrink-0" />
         )}
-        <span className="text-xs truncate">{node.name}</span>
+        <span className="text-xs truncate font-mono">{node.name}</span>
       </div>
 
-      {/* Language badge pill */}
-      <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-[#F5F4F0] text-[#A8A29E] shrink-0">
+      <span className="text-[9px] uppercase font-mono px-1.5 py-0.2 rounded bg-white/[0.05] text-white/40 border border-white/5 shrink-0">
         {extension ?? "code"}
       </span>
     </div>

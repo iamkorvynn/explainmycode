@@ -487,10 +487,10 @@ export function MainIDE() {
   }
 
   return (
-    <div className="h-screen w-screen bg-gradient-to-br from-[#F8D0B5] via-[#F5C29F] to-[#F3B58C] p-2 md:p-3.5 overflow-hidden flex flex-col relative font-sans">
+    <div className="h-screen w-screen bg-black text-white p-2 md:p-3 overflow-hidden flex flex-col relative font-sans select-none">
       {/* Organic Contour Curves Watermark */}
       <svg
-        className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-10"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -514,12 +514,12 @@ export function MainIDE() {
       </svg>
 
       {/* Decorative // Badge Watermark in background */}
-      <div className="absolute top-1 right-6 text-white/30 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
+      <div className="absolute top-1 right-6 text-white/20 text-2xl font-black font-mono select-none pointer-events-none tracking-widest">
         //
       </div>
 
       {/* Floating Studio Canvas Container */}
-      <div className="relative z-10 h-full w-full bg-[#FFFFFF] rounded-[22px] md:rounded-[30px] border border-[#F0EDE6] shadow-[0_25px_80px_rgba(180,80,30,0.18)] flex flex-col overflow-hidden">
+      <div className="relative z-10 h-full w-full bg-[#09090b] text-white rounded-[18px] md:rounded-[22px] border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.9)] flex flex-col overflow-hidden">
         <TopNavBar
           onRunCode={handleRunCode}
           onToggleTerminal={() => setShowTerminal((prev) => !prev)}
@@ -540,7 +540,7 @@ export function MainIDE() {
               />
             </Panel>
 
-            <PanelResizeHandle className="w-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-col-resize" />
+            <PanelResizeHandle className="w-[1px] bg-white/10 hover:bg-[#eca8d6] transition-colors cursor-col-resize" />
 
             <Panel defaultSize={52} minSize={30}>
               {showTerminal ? (
@@ -564,7 +564,7 @@ export function MainIDE() {
                     )}
                   </Panel>
 
-                  <PanelResizeHandle className="h-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-row-resize" />
+                  <PanelResizeHandle className="h-[1px] bg-white/10 hover:bg-[#eca8d6] transition-colors cursor-row-resize" />
 
                   <Panel defaultSize={isTerminalMaximized ? 75 : 32} minSize={15}>
                     <Terminal
@@ -605,7 +605,7 @@ export function MainIDE() {
               )}
             </Panel>
 
-            <PanelResizeHandle className="w-[1px] bg-[#ECE8DF] hover:bg-[#FF7A50] transition-colors cursor-col-resize" />
+            <PanelResizeHandle className="w-[1px] bg-white/10 hover:bg-[#eca8d6] transition-colors cursor-col-resize" />
 
             <Panel defaultSize={30} minSize={22} maxSize={42}>
               <AIMentorPanel
